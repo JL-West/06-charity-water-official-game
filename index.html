@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adam's Ale</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Simple visually hidden heading for screen readers -->
+    <h1 class="sr-only">Welcome to Adam's Ale</h1>
+
+    <!-- First screen: Main menu / intro -->
+    <div id="screen-1" class="app-screen screen-center">
+        <div class="card intro-card">
+            <h2>Adam's Ale</h2>
+            <p class="lead">Welcome, traveller! Embark on a quest: place gear, gather supplies, and bring them to the hamlet.</p>
+            <!-- Wireframe preview: replace img/wireframe.png with your exported Figma PNG to show the frame here -->
+            <div class="wireframe-preview" style="margin:12px 0;">
+                <img src="img/wireframe.png" alt="Wireframe preview" onerror="this.style.display='none'" style="max-width:100%;border-radius:8px;box-shadow:0 4px 12px rgba(2,6,23,0.08);" />
+                <!-- fallback inline placeholder shown when the PNG is not present -->
+                <svg class="wireframe-placeholder" width="360" height="220" viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="border-radius:8px;display:block;">
+                    <rect width="360" height="220" rx="8" fill="#ffffff" stroke="#e6eef6" />
+                    <rect x="16" y="16" width="120" height="24" rx="4" fill="#f3f4f6" />
+                    <rect x="16" y="52" width="328" height="140" rx="6" fill="#fbfdff" stroke="#eef2f7" />
+                    <text x="20" y="40" fill="#6b7280" font-size="12">Intro wireframe (drop your PNG as <tspan font-weight="bold">img/wireframe.png</tspan>)</text>
+                </svg>
+            </div>
+                <div class="intro-actions">
+                    <button id="loadBtn" class="btn">Continue (Load)</button>
+                    <button id="createCharBtn" class="btn">Create Character</button>
+                </div>
+            <!-- Inline, non-blocking indicator shown next to the load button -->
+            <div style="display:flex;align-items:center;justify-content:center;margin-top:8px;gap:8px;">
+                                <div id="inlineIndicator" class="inline-indicator hidden" role="status" aria-live="polite" aria-hidden="true">
+                                        <!-- decorative jerrycan SVG; fill is updated via JS (height + y) -->
+                                        <svg id="jerrySvg" class="jerry-svg" width="36" height="44" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                                            <!-- body outline -->
+                                            <rect x="2" y="6" width="32" height="30" rx="4" fill="none" stroke="#2b3742" stroke-width="1" />
+                                            <!-- neck/handle -->
+                                            <rect x="24" y="2" width="8" height="8" rx="2" fill="#ffffff" stroke="#2b3742" stroke-width="1" />
+                                            <!-- water rect (we update height and y via JS). initial height=0 -->
+                                            <rect id="jerryWater" x="3" y="36" width="30" height="0" fill="#2ea7f7" />
+                                        </svg>
+                                        <span class="inline-spinner" aria-hidden="true"></span>
+                                        <span id="inlineIndicatorText" class="inline-text">Loading...</span>
+                                        <span id="inlineIndicatorPct" class="inline-pct">0%</span>
+                                </div>
+            </div>
+            <div style="margin-top:8px;">
+                <a class="btn" href="https://www.figma.com/proto/dcjWRW8CHaVQE1QV38d0yE/Adam-s-Ale?node-id=0-1&t=o031IUey9KEXQKv1-1" target="_blank" rel="noopener noreferrer">Open Figma Wireframe</a>
+            </div>
+            <p class="small">This prototype uses simple HTML/CSS/JS so students can learn DOM programming.</p>
+        </div>
+    </div>
+
+    <!-- Third screen: Character creator (simple form) -->
+    <div id="screen-3" class="app-screen hidden screen-center">
+        <div class="card intro-card" style="width:480px;">
+            <h2>Create Your Character</h2>
+            <p class="lead">Choose a name and avatar for your character.</p>
+            <div style="margin:10px 0; display:flex; gap:12px; align-items:center;">
+                <label for="charName" style="min-width:80px;">Name</label>
+                <input id="charName" type="text" placeholder="Enter name" style="flex:1; padding:8px; border-radius:6px; border:1px solid #e6eef6;" />
+            </div>
+            <div style="margin:8px 0;">
+                <h4 style="margin:6px 0;">Choose avatar</h4>
+                <div id="avatarList" style="display:flex;gap:8px;align-items:center;">
+                    <button class="avatar-option" data-avatar="avatar-1">👩</button>
+                    <button class="avatar-option" data-avatar="avatar-2">🧑</button>
+                    <button class="avatar-option" data-avatar="avatar-3">🧑‍🌾</button>
+                    <button class="avatar-option" data-avatar="avatar-4">🧕</button>
+                </div>
+            </div>
+            <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
+                <button id="saveCharBtn" class="btn primary">Save Character</button>
+                <button id="cancelCharBtn" class="btn">Cancel</button>
+            </div>
+            <p class="small">This is a minimal character creator for the prototype.</p>
+        </div>
+    </div>
+
+    <!-- Second screen: Desktop / Laptop layout -->
+    <div id="screen-2" class="app-screen hidden">
+        <header class="app-header">
+            <div class="left">
+                <button id="backBtn" class="btn">← Back</button>
+                <h2>Adam's Ale — Community Well Project</h2>
+            </div>
+            <div class="right">
+                <!-- Sound controls: mute toggle, volume slider and now-playing -->
+                <div style="display:inline-flex;align-items:center;gap:8px;margin-left:8px;">
+                    <button id="soundToggle" class="btn" aria-pressed="false">🔊</button>
+                    <input id="soundVolume" type="range" min="0" max="1" step="0.05" value="0.8" style="width:98px;" aria-label="Sound volume" />
+                    <button id="enableSoundBtn" class="btn medieval-btn" title="Enable audio for synth SFX and music">Harken!</button>
+                    <button id="musicToggleBtn" class="btn medieval-btn" title="Play / Pause background music">Let Music Play</button>
+                    <div id="nowPlaying" class="now-playing" aria-live="polite" style="display:none;"></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <!-- Left panel: player / mission info -->
+            <aside class="panel left-panel">
+                <section class="profile card">
+                    <h3>Player</h3>
+                    <p id="playerNameLine"><span id="playerAvatar" class="player-avatar" aria-hidden="true"></span> <span id="playerName">Player 1</span></p>
+                    <p>Gold: $<span id="funds">100</span></p>
+                    <p>Aid Delivered: <span id="waterDelivered">0</span></p>
+                </section>
+
+                <section class="mission card">
+                <h3>Quest</h3>
+                    <p>Prepare supplies and help the nearby hamlet — undertake quests and bring aid.</p>
+                    <button id="startMission" class="btn primary">Restart</button>
+                </section>
+            </aside>
+
+            <!-- Center: map / placement area -->
+            <section class="game-area card">
+                <h3>World Map</h3>
+                <div id="mapGrid" class="map-grid" aria-label="Site map">
+                    <!-- map tiles generated by JS -->
+                </div>
+
+                <div class="map-actions">
+                        <button id="deliverWater" class="btn primary">Deliver / Quest</button>
+                    <span id="statusText" class="status">Select a tool from the shop and click a tile to place it.</span>
+                </div>
+            </section>
+
+            <!-- Right panel: shop / items -->
+            <aside class="panel right-panel">
+                <section class="shop card">
+                    <h3>Market</h3>
+                    <div id="shopList" class="shop-list">
+                        <!-- shop items generated by JS -->
+                    </div>
+                </section>
+
+                <section class="inventory card">
+                    <h3>Satchel</h3>
+                    <ul id="inventoryList">
+                        <li>No items placed yet.</li>
+                    </ul>
+                </section>
+                <!-- Move Help button here so header isn't crowded -->
+                <div style="margin-top:12px; text-align:center;">
+                    <button id="helpBtn" class="btn">Help</button>
+                </div>
+            </aside>
+        </main>
+
+        <footer class="app-footer">
+            <small>Desktop preview — responsive layout intended for laptop/desktop</small>
+        </footer>
+    <!-- loader overlays are provided by the simple spinner in `#simpleLoader` -->
+
+        <!-- NPC Quest Dialog (hidden by default) -->
+        <div id="npcDialog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="npcDialogTitle">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content">
+                <h3 id="npcDialogTitle">Quest Offer</h3>
+                <p id="npcDialogText">A villager needs help collecting supplies. Will you accept?</p>
+                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+                    <button id="npcDeclineBtn" class="btn">Decline</button>
+                    <button id="npcAcceptBtn" class="btn primary">Accept Quest</button>
+                </div>
+                <button id="npcCloseBtn" class="btn" style="position:absolute;top:8px;right:8px;">Close</button>
+            </div>
+        </div>
+
+            <!-- Confirm Reset Dialog -->
+            <div id="confirmResetDialog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirmResetTitle">
+                <div class="modal-backdrop"></div>
+                <div class="modal-content">
+                    <h3 id="confirmResetTitle">Restart Game</h3>
+                    <p id="confirmResetText">Are you sure you want to clear progress?</p>
+                    <label style="display:flex;align-items:center;gap:8px;margin-top:8px;"><input id="wipeCharacterCheckbox" type="checkbox"> Also remove character (name & avatar)</label>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+                        <button id="resetCancelBtn" class="btn">Cancel</button>
+                        <button id="resetConfirmBtn" class="btn primary">Confirm</button>
+                    </div>
+                </div>
+            </div>
+
+        <script src="script.js"></script>
+    <!-- Hidden container for YouTube music player (controlled via JS) -->
+    <div id="yt-music-container" style="display:none;width:0;height:0;overflow:hidden;" aria-hidden="true"></div>
+</body>
+</html>

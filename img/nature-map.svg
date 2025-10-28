@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 800" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="g0" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#e9f9ff" />
+      <stop offset="100%" stop-color="#cfeef8" />
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="800" fill="url(#g0)" />
+  <!-- rolling hills -->
+  <g fill="#7ac29a">
+    <path d="M0,520 C180,420 340,480 520,460 C700,440 860,520 1060,460 C1240,400 1400,520 1400,520 L1400,800 L0,800 Z"/>
+  </g>
+  <g fill="#5aa77a" opacity="0.95">
+    <path d="M0,600 C160,540 300,600 480,580 C680,560 820,620 1040,580 C1220,540 1400,600 1400,600 L1400,800 L0,800 Z"/>
+  </g>
+  <!-- river --><path d="M0,700 C180,660 360,720 540,700 C720,680 900,740 1080,700 C1260,660 1400,700 1400,700 L1400,800 L0,800 Z" fill="#7ec8f2" opacity="0.9"/>
+  <!-- small trees -->
+  <g fill="#2f6b3a">
+    <circle cx="200" cy="500" r="12"/>
+    <rect x="196" y="510" width="8" height="20" fill="#6b3f2a" rx="2"/>
+    <circle cx="320" cy="540" r="14"/>
+    <rect x="316" y="554" width="8" height="20" fill="#6b3f2a" rx="2"/>
+  </g>
+</svg>

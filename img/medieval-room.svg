@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+  <defs>
+    <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#5b3a29" />
+      <stop offset="100%" stop-color="#3b2a1f" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#g)" />
+  <!-- simple window light -->
+  <rect x="900" y="80" width="160" height="220" rx="6" fill="#f9e7c9" opacity="0.9" />
+  <rect x="920" y="100" width="120" height="180" fill="#fff4d9" opacity="0.35" />
+  <!-- bed silhouette -->
+  <rect x="140" y="420" width="720" height="220" rx="12" fill="#8b5e3c" />
+  <rect x="160" y="440" width="680" height="160" rx="8" fill="#b57b4a" />
+  <rect x="160" y="480" width="240" height="60" rx="6" fill="#6b3f2a" />
+  <!-- tapestry -->
+  <rect x="40" y="80" width="320" height="320" rx="8" fill="#7a2b2b" />
+  <g fill="#d9a441" opacity="0.9">
+    <circle cx="200" cy="240" r="34" />
+    <circle cx="260" cy="300" r="18" />
+  </g>
+  <!-- subtle grain overlay -->
+  <rect width="1200" height="800" fill="rgba(0,0,0,0.03)" />
+</svg>

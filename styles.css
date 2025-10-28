@@ -1,0 +1,295 @@
+/* Charity: water Brand Colors
+
+Primary Colors:
+- Yellow:     #FFC907
+- Blue:       #2E9DF7
+
+Secondary Colors:
+- Light Blue: #8BD1CB
+- Green:      #4FCB53
+- Orange:     #FF902A
+- Red:        #F5402C
+- Dark Green: #159A48
+- Pink:       #F16061
+
+*/
+/* Simple, beginner-friendly styles for the prototype
+   Focused on desktop (second screen) but includes a small-screen fallback
+*/
+
+/* Import a decorative 'middle ages' heading font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Uncial+Antiqua&display=swap');
+
+:root {
+	/* water:charity brand colors */
+	--brand-yellow: #FFC907;
+	--brand-blue: #2E9DF7;
+	--brand-lightblue: #8BD1CB;
+	--brand-green: #4FCB53;
+	--brand-muted: #f3f7fb;
+}
+/* Basic reset */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+body { background: #f6efe6; color: #1f2937; padding: 20px; }
+
+/* Visually hidden heading for accessibility */
+.sr-only { position: absolute !important; height: 1px; width: 1px; overflow: hidden; clip: rect(1px, 1px, 1px, 1px); white-space: nowrap; }
+
+/* Layout */
+.app-screen { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.screen-center { min-height: 70vh; display: flex; align-items: center; justify-content: center; }
+.app-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.app-header h2 { font-size: 1.2rem; margin-left: 8px; color: var(--brand-blue); }
+
+/* Use the medieval font for headings and brand it to look like a tavern sign */
+h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spacing: 0.6px; }
+
+/* Slight decorative treatment for intro title */
+.intro-card h2 { font-size: 1.6rem; color: var(--brand-blue); text-shadow: 0 1px 0 rgba(0,0,0,0.03); }
+
+.app-main { display: grid; grid-template-columns: 220px 1fr 300px; gap: 16px; align-items: start; }
+
+/* Panels and card */
+.panel, .game-area, .card { background: #fbfafa; border-radius: 8px; padding: 12px; box-shadow: 0 1px 3px rgba(10,10,10,0.06); }
+.card h3 { margin-bottom: 8px; font-size: 1rem; }
+
+/* Buttons */
+.btn { border: 1px solid #d1d5db; background: white; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+.btn:hover { background: #f3f4f6; }
+.btn.primary { background: var(--brand-blue); color: white; border-color: var(--brand-blue); box-shadow: 0 6px 14px rgba(46,157,247,0.12); }
+.btn.primary:hover { background: color-mix(in srgb, var(--brand-blue) 85%, black 15%); }
+
+/* Intro card */
+.intro-card { width: 420px; text-align: center; }
+.intro-card .lead { color: #374151; margin: 10px 0 14px; }
+.intro-actions { display: flex; gap: 8px; justify-content: center; margin-bottom: 8px; }
+.small { color: #6b7280; font-size: 0.9rem; margin-top: 8px; }
+
+.wireframe-preview { display:flex; align-items:center; justify-content:center; }
+.wireframe-preview img, .wireframe-preview .wireframe-placeholder { max-width:100%; height:auto; }
+
+/* World viewport (replaces strict grid visuals with an immersive world) */
+.map-grid, .world {
+	/* world/viewport: fixed height with hidden overflow; JS will size the inner world */
+	position: relative;
+	overflow: hidden;
+	width: 100%;
+	height: 420px;
+	margin-top: 8px;
+	background: linear-gradient(180deg, #eaf6ff 0%, #f6fbf9 60%);
+	border-radius: 8px;
+}
+
+/* Inside the world we place absolute tiles and a floating player element. JS sets .world-inner width/height to match the virtual world size. */
+.world-inner { position: absolute; left: 0; top: 0; will-change: transform; transition: transform 240ms cubic-bezier(.2,.9,.2,1); z-index: 1; }
+.map-tile {
+	position: absolute;
+	width: 140px;
+	height: 90px;
+	/* more colorful plots with gentle gradients to read as fertile ground */
+	background: linear-gradient(180deg, #f2eee8 0%, #e9f7ef 40%, #f6fbf9 100%);
+	padding: 8px;
+	border-radius: 10px;
+	text-align: center;
+	cursor: pointer;
+	user-select: none;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	flex-direction:column;
+	box-shadow: 0 6px 14px rgba(12, 18, 31, 0.06);
+	transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+.map-tile:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(200,179,64,0.18); }
+.world-inner .map-tile:nth-child(odd) { background: linear-gradient(180deg,#c8b340 0%, #c8b340 40%, #c8b340 100%); }
+
+.map-tile .tile-label { color: #15324a; }
+.map-tile .tile-item { color: #0f5132; }
+.map-tile.placed { background: linear-gradient(180deg,#f0fff4,#dff6ea); border: 2px solid #34d399; box-shadow: 0 10px 28px rgba(52,211,153,0.06); }
+
+/* Player marker styles for immersive movement */
+.player-entity { position: absolute; width: 46px; height: 46px; border-radius: 10px; display:flex; align-items:center; justify-content:center; font-size:22px; background: rgba(255,255,255,0.95); box-shadow: 0 8px 18px rgba(2,6,23,0.12); transition: left 180ms linear, top 180ms linear, transform 180ms cubic-bezier(.2,.9,.2,1); pointer-events: none; }
+.map-tile.player { background: rgba(255,243,224,0.85); outline: 2px solid rgba(14,165,164,0.12); }
+
+/* keep tile inner elements tidy */
+.map-tile .tile-label { font-size: 0.85rem; color: #0f172a; }
+.map-tile .tile-item { font-size: 0.78rem; color: #065f46; margin-top:6px; }
+
+/* NPC entity */
+.npc-entity { position: absolute; width: 36px; height: 36px; border-radius: 10px; display:flex; align-items:center; justify-content:center; font-size:18px; background: linear-gradient(180deg,#1583c4,#fff1e0); box-shadow: 0 8px 18px rgba(12,18,31,0.08); pointer-events: none; }
+.npc-entity .npc-indicator { position: absolute; right: -8px; top: -8px; background: #fde68a; border-radius: 999px; padding: 2px 6px; font-size:12px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.npc-entity.quest-complete { opacity: 0.7; filter: grayscale(0.2); }
+
+/* stepping visual for player when moving */
+.player-entity.stepping { transform: scale(1.08); }
+
+/* Modal dialog for NPC / quest */
+.modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20000; }
+.modal.hidden { display: none; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(2,6,23,0.5); border-radius: 8px; }
+.modal-content { position: relative; background: #fff; padding: 18px 18px 12px 18px; border-radius: 10px; width: 420px; max-width: calc(100% - 32px); box-shadow: 0 8px 36px rgba(2,6,23,0.32); z-index: 2; }
+.modal-content h3 { margin: 0 0 8px 0; }
+.modal-content p { color: #374151; }
+
+/* Respawn animation for the player entity */
+.player-entity.respawn { animation: respawnAnim 600ms cubic-bezier(.2,.9,.2,1); }
+@keyframes respawnAnim {
+	0% { transform: scale(0.3) translateY(-12px) rotate(-6deg); opacity: 0; }
+	60% { transform: scale(1.08) translateY(2px) rotate(2deg); opacity: 1; }
+	100% { transform: scale(1) translateY(0) rotate(0); opacity: 1; }
+}
+
+/* Backgrounds and themed overlays */
+/* Main menu: nature photo (charity:water feel). Place your hero image at img/nature-hero.jpg */
+/* Main menu: nature photo (charity:water feel).
+	 Try local JPG first, then a local SVG placeholder, then a hosted fallback.
+*/
+#screen-1 {
+	background-image: linear-gradient(rgba(6,21,34,0.28), rgba(6,21,34,0.08)), url('img/nature-hero.jpg'), url('img/nature-hero.svg'), url('https://resilientwatersheds.nature.org/sites/default/files/styles/visual_break_image/public/images/%28c%29%20Jose%20w.%20accent%20Furlan%20Pissol%2C%20TNC%20Photo%20Contest%202019-web.jpg?itok=PGVI6fDk'), url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=60');
+	background-size: cover;
+	background-position: center center;
+	border-radius: 10px;
+}
+
+/* Center content in main screen with an overlay panel effect */
+#screen-1 .intro-card { background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.82)); box-shadow: 0 8px 30px rgba(2,6,23,0.18); }
+
+/* Map background: natural terrain photo used behind the world viewport.
+	Try local JPG, then local SVG placeholder, then hosted fallback.
+*/
+.map-grid, .world { background-image: linear-gradient(rgba(255,255,255,0.0), rgba(255,255,255,0.0)), url('img/nature-map.jpg'), url('img/nature-map.svg'), url('https://images.ctfassets.net/2w85ks0ylymt/6ZxRtvkDZmE9zkl6rD2cd4/d773968858c6eb0350834d67354dc4f6/Netra_Header.jpeg?w=480'), url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1400&q=60'); background-size: cover; background-position: center; }
+
+/* Add a soft vignette to the map area for readability */
+.game-area.card { position: relative; overflow: visible; }
+.game-area.card::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, rgba(255,255,255,0.0) 40%, rgba(8,16,30,0.08) 100%); border-radius: 8px; }
+
+/* Character creator: bedchamber theme (medieval).
+	First try a local image at img/medieval-room.jpg; if that's missing the CSS also falls back to a hosted image.
+	Hosted fallback source: squarespace CDN
+	(the browser will try the first URL and if it's missing, it will use the next)
+	Note: you can replace the local filename or remove the hosted fallback if you add your own image.
+*/
+#screen-3 { background-image: linear-gradient(rgba(6,9,12,0.24), rgba(6,9,12,0.12)), url('img/medieval-room.jpg'); background-size: cover; background-position: center; }
+#screen-3 { background-image: linear-gradient(rgba(6,9,12,0.24), rgba(6,9,12,0.12)), url('img/medieval-room.jpg'), url('img/medieval-room.svg'), url('https://images.squarespace-cdn.com/content/66311e7ab025c412c52014f4/1726165184490-B6MH55YJO20ZWU1W26DM/7.jpg?format=1500w&content-type=image%2Fjpeg'); background-size: cover; background-position: center; }
+#screen-3 .intro-card { background: linear-gradient(180deg, rgba(255,250,240,0.95), rgba(255,250,240,0.88)); box-shadow: 0 8px 30px rgba(2,6,23,0.18); }
+
+/* Fallbacks when images are missing: use themed gradients */
+/* No-op supports fallback removed (kept gradients and overlays as readable fallbacks). */
+
+/* Utility: dim images for better contrast when needed */
+.bg-dim::before { content: ''; position:absolute; inset:0; background: rgba(6,21,34,0.2); border-radius:inherit; pointer-events:none; }
+
+/* Make NPC clickable and more noticeable */
+.npc-entity { pointer-events: auto; cursor: pointer; }
+
+/* Player sprite container: we'll place an inline SVG inside the player-entity */
+.player-entity svg { width: 80%; height: 80%; display:block; }
+
+/* small responsive tweak: reduce world viewport height on narrow screens */
+@media (max-width: 600px) {
+	.map-grid, .world { height: 320px; }
+	.player-entity { width: 40px; height: 40px; font-size:20px; }
+}
+
+/* Player marker styles for grid-based movement */
+.map-tile.player { background: #fff3e0; outline: 2px solid rgba(14,165,164,0.12); }
+.player-emoji { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 20px; pointer-events: none; }
+.map-tile { position: relative; }
+
+/* Shop list */
+.shop-list { display: flex; flex-direction: column; gap: 8px; }
+.shop-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-radius: 6px; background: #fafafa; border: 1px solid #eef2f7; }
+.shop-item .meta { font-size: 0.9rem; color: #374151; }
+.shop-item button { margin-left: 10px; }
+
+/* Inventory */
+.inventory ul { list-style: disc; padding-left: 18px; margin-top: 8px; }
+
+/* Status */
+.status { margin-left: 12px; color: #374151; }
+
+/* Footer */
+.app-footer { text-align: center; color: #6b7280; font-size: 0.85rem; margin-top: 6px; }
+
+/* Hidden class for transitions */
+.hidden { display: none; }
+
+/* Loading overlay styles */
+.loading-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(15, 23, 42, 0.45); z-index: 9999; pointer-events: auto; touch-action: none; }
+.loading-overlay .loader { background: white; padding: 18px 22px; border-radius: 8px; display:flex; gap: 12px; align-items: center; box-shadow: 0 6px 18px rgba(2,6,23,0.2); }
+.loader-text { font-weight: 600; color: #0f172a; }
+
+.loader-percent { font-weight: 600; color: #0f172a; margin-left: 6px; }
+
+/* Simple loader removed — loader API is now a no-op to avoid blocking UX */
+/* (Jerrycan loader removed - keeping only the simple loader for reliability) */
+/* small layout tweak for the loader area */
+.loader { display:flex; align-items:center; gap: 12px; }
+.splash { pointer-events:none; }
+
+/* Inline, non-blocking indicator (small spinner + percent) */
+:root {
+	--indicator-bg: rgba(255,255,255,0.95);
+	--indicator-accent: #0ea5a4;
+	--indicator-text: #0f172a;
+	--indicator-radius: 6px;
+	--indicator-font: 0.9rem;
+}
+.inline-indicator {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 8px;
+	background: var(--indicator-bg);
+	color: var(--indicator-text);
+	border-radius: var(--indicator-radius);
+	box-shadow: 0 2px 6px rgba(2,6,23,0.06);
+	font-size: var(--indicator-font);
+	pointer-events: none; /* non-blocking */
+	opacity: 0;
+	transform: translateY(-2px);
+	transition: opacity 180ms ease, transform 180ms ease;
+}
+.inline-indicator:not(.hidden) { opacity: 1; transform: translateY(0); }
+.inline-spinner { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #e6eef6; border-top-color: var(--brand-yellow); animation: spin 700ms linear infinite; }
+.inline-pct { font-weight:700; color:var(--brand-yellow); margin-left:6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width:480px) {
+	.inline-indicator { font-size: 0.8rem; gap:6px; padding:4px 6px; }
+	.inline-pct { display:none; }
+}
+
+	/* Jerrycan decorative styles */
+	.jerry-svg { display:inline-block; vertical-align:middle; pointer-events:none; margin-right:6px; }
+	.jerry-svg #jerryWater { shape-rendering: crispEdges; fill: var(--brand-blue); }
+
+	/* Character creator styles */
+	.avatar-option { background: white; border: 1px solid #eef2f7; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 20px; display:inline-flex; align-items:center; justify-content:center; width:48px; height:48px; }
+	.avatar-option.selected { box-shadow: 0 6px 18px rgba(2,6,23,0.08), 0 0 0 6px rgba(255,201,7,0.10); transform: translateY(-4px); }
+
+	/* Player avatar preview in HUD - subtle yellow glow once chosen */
+	.player-avatar { display:inline-block; width:28px; height:28px; line-height:28px; text-align:center; border-radius:6px; background:var(--brand-yellow); border:1px solid rgba(0,0,0,0.06); margin-right:8px; font-size:18px; color:#17324d; box-shadow: 0 2px 8px rgba(14,165,164,0.06); transition: box-shadow 180ms ease, transform 180ms ease; }
+	.player-avatar.has-avatar { box-shadow: 0 10px 28px rgba(255,201,7,0.12); transform: translateY(-2px); }
+
+	/* Now playing title (uses the medieval Uncial font for thematic styling) */
+	.now-playing { font-family: 'Uncial Antiqua', Georgia, serif; font-size: 0.9rem; color: #fff8e6; background: rgba(10,20,30,0.38); padding: 6px 10px; border-radius: 8px; box-shadow: 0 6px 18px rgba(2,6,23,0.14); max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+	.now-playing.hidden { display:none; }
+
+	/* Medieval-styled small buttons for music controls */
+	.medieval-btn { font-family: 'Uncial Antiqua', Georgia, serif; font-size: 0.85rem; padding: 6px 8px; background: linear-gradient(180deg,#fffaf0,#fff6e6); border-radius:6px; border:1px solid rgba(0,0,0,0.06); }
+	.medieval-btn:hover { box-shadow: 0 8px 20px rgba(2,6,23,0.12); }
+
+
+
+/* Small screens fallback (we'll focus on desktop but keep it usable) */
+@media (max-width: 900px) {
+	.app-main { grid-template-columns: 1fr; }
+	.left-panel, .right-panel { order: 2; }
+	.game-area { order: 1; }
+}
+
+/* When the page should not scroll (modal loaders), add this to the <body> */
+.no-scroll { overflow: hidden !important; }
+html.no-scroll { overflow: hidden !important; height: 100%; }
+body.no-scroll { height: 100%; }

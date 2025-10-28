@@ -1,0 +1,16 @@
+{
+  "name": "05-charity-water-game-prototype",
+  "version": "1.0.0",
+  "description": "In this project, you’ll begin transforming your game concept from last week into a working interactive prototype using HTML, CSS, and JavaScript.",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preview": "python3 -m http.server 8000"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jsdom": "^22.0.0"
+  }
+}

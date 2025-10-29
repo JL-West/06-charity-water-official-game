@@ -15,16 +15,19 @@
         <div class="card intro-card">
             <h2>Adam's Ale</h2>
             <p class="lead">Welcome, traveller! Embark on a quest: place gear, gather supplies, and bring them to the hamlet.</p>
-            <!-- Wireframe preview: replace img/wireframe.png with your exported Figma PNG to show the frame here -->
+            <!-- Wireframe preview: replaced with a clickable large jerrycan image that still links to the Figma wireframe -->
             <div class="wireframe-preview" style="margin:12px 0;">
-                <img src="img/wireframe.png" alt="Wireframe preview" onerror="this.style.display='none'" style="max-width:100%;border-radius:8px;box-shadow:0 4px 12px rgba(2,6,23,0.08);" />
-                <!-- fallback inline placeholder shown when the PNG is not present -->
-                <svg class="wireframe-placeholder" width="360" height="220" viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="border-radius:8px;display:block;">
-                    <rect width="360" height="220" rx="8" fill="#ffffff" stroke="#e6eef6" />
-                    <rect x="16" y="16" width="120" height="24" rx="4" fill="#f3f4f6" />
-                    <rect x="16" y="52" width="328" height="140" rx="6" fill="#fbfdff" stroke="#eef2f7" />
-                    <text x="20" y="40" fill="#6b7280" font-size="12">Intro wireframe (drop your PNG as <tspan font-weight="bold">img/wireframe.png</tspan>)</text>
-                </svg>
+                <a href="https://www.figma.com/proto/dcjWRW8CHaVQE1QV38d0yE/Adam-s-Ale?node-id=0-1&t=o031IUey9KEXQKv1-1" target="_blank" rel="noopener noreferrer" aria-label="Open Figma wireframe (opens in new tab)">
+                    <!-- Large jerrycan / water can image (falls back to SVG placeholder if image missing) -->
+                    <img src="img/water-can.png" alt="Large jerrycan preview — click to open wireframe" class="big-jerry" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                    <!-- fallback inline placeholder shown when the PNG is not present -->
+                    <svg class="wireframe-placeholder" width="360" height="220" viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="border-radius:8px;display:none;">
+                        <rect width="360" height="220" rx="8" fill="#ffffff" stroke="#e6eef6" />
+                        <rect x="16" y="16" width="120" height="24" rx="4" fill="#f3f4f6" />
+                        <rect x="16" y="52" width="328" height="140" rx="6" fill="#fbfdff" stroke="#eef2f7" />
+                        <text x="20" y="40" fill="#6b7280" font-size="12">Intro wireframe (drop your PNG as <tspan font-weight="bold">img/wireframe.png</tspan>)</text>
+                    </svg>
+                </a>
             </div>
                 <div class="intro-actions">
                     <button id="loadBtn" class="btn">Continue (Load)</button>

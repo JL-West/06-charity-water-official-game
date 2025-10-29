@@ -68,6 +68,17 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 .wireframe-preview { display:flex; align-items:center; justify-content:center; }
 .wireframe-preview img, .wireframe-preview .wireframe-placeholder { max-width:100%; height:auto; }
 
+/* Large jerrycan / water-can preview used on the intro card. Clickable and responsive. */
+.big-jerry {
+	width: 320px;
+	max-width: 100%;
+	height: auto;
+	border-radius: 8px;
+	box-shadow: 0 8px 20px rgba(2,6,23,0.08);
+	cursor: pointer;
+	display: block;
+}
+
 /* World viewport (replaces strict grid visuals with an immersive world) */
 .map-grid, .world {
 	/* world/viewport: fixed height with hidden overflow; JS will size the inner world */

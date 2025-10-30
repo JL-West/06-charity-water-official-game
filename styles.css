@@ -162,26 +162,21 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 	border-radius: 10px;
 }
 
-/* Make room for an absolutely positioned sponsorship bar inside the intro screen */
-#screen-1 { position: relative; padding-bottom: 64px; }
-
+/* Sponsorship bar placed inside the intro card (static flow) so it's always visible */
 .sponsor-bar {
-	position: absolute;
-	left: 0;
-	right: 0;
-	bottom: 0;
+	position: static;
 	display: flex;
-	align-items: center;
 	justify-content: center;
 	background: rgba(0,0,0,0.72); /* black translucent background */
 	color: var(--brand-blue); /* charity:water blue */
-	padding: 10px 12px;
+	padding: 8px 12px;
+	margin-top: 12px;
 	font-family: Georgia, 'Times New Roman', serif;
 	font-weight: 700; /* bold */
 	font-style: italic; /* italic */
 	font-size: 0.95rem;
 	text-align: center;
-	z-index: 30;
+	border-radius: 8px;
 }
 
 /* Inner container keeps the bar the same width as the intro card and centers it */

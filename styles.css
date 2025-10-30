@@ -320,9 +320,10 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 
 /* Configuration panel styles */
 .config { display:flex; flex-direction:column; gap:8px; }
-.config .row { display:flex; gap:8px; align-items:center; }
-.config label { min-width:140px; font-size:0.9rem; color:#374151; }
-.config input[type="range"] { flex:1; }
+.config .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.config label { min-width:100px; font-size:0.9rem; color:#374151; }
+.config select, .config input[type="range"] { flex:1; min-width:120px; }
+.config input[type="range"] { width:100%; }
 .config select { padding:6px; border-radius:6px; }
 
 

@@ -1456,9 +1456,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderChallenges() {
     if (!challengesListEl) return;
     challengesListEl.innerHTML = '';
-    // ensure we have a seeded daily set
-    seedDailyChallenges();
-    const list = Array.isArray(state.dailyChallenges) && state.dailyChallenges.length ? state.dailyChallenges : CHALLENGE_POOL;
+    // ensure we have a seeded session set
+    seedSessionChallenges();
+    const list = Array.isArray(state.sessionChallenges) && state.sessionChallenges.length ? state.sessionChallenges : CHALLENGE_POOL;
     list.forEach(ch => {
       const div = document.createElement('div');
       div.className = 'challenge';
@@ -1572,10 +1572,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const dx = (questIdx % MAP_COLS) - (idx % MAP_COLS);
     const dy = Math.floor(questIdx / MAP_COLS) - Math.floor(idx / MAP_COLS);
     const dir = dx === 0 && dy === 0 ? 'here' : `${Math.abs(dx)} right/left ${Math.abs(dy)} down/up`;
-    const txt = `You are at Plot ${idx + 1}. The quest is at Plot ${questIdx + 1} (${dir}).`;
+    const distance = Math.abs(dx) + Math.abs(dy);
+    const txt = `First-person: Plot ${idx + 1} — Facing the world. Quest ${distance} tiles away (${dir}).`;
     const el = document.getElementById('fpText'); if (el) el.textContent = txt;
-    // also highlight the quest tile visually in the map
-    try { renderMap(); } catch (e) {}
+    // Emulate a simple FP viewport by applying a CSS zoom + center effect on the worldInner
+    try {
+      // small zoom: center map on the player's tile and scale up slightly
+      if (worldInner) {
+        const px = idx % MAP_COLS;
+        const py = Math.floor(idx / MAP_COLS);
+        const cx = px * TILE_W + TILE_W / 2;
+        const cy = py * TILE_H + TILE_H / 2;
+        // compute transform to center on player's tile and scale
+        const viewW = mapGridEl.clientWidth;
+        const viewH = mapGridEl.clientHeight;
+        const tx = Math.max(0, Math.min(cx - viewW / 2, Math.max(0, worldInner.clientWidth - viewW)));
+        const ty = Math.max(0, Math.min(cy - viewH / 2, Math.max(0, worldInner.clientHeight - viewH)));
+        worldInner.style.transform = `translate(${-tx}px, ${-ty}px) scale(1.12)`;
+        // add a subtle vignette to the fpView panel to simulate looking forward
+        fpView.style.boxShadow = 'inset 0 -40px 80px rgba(0,0,0,0.08)';
+      }
+    } catch (e) {}
   }
   if (toggleFPBtn) {
     toggleFPBtn.addEventListener('click', (ev) => {
@@ -1583,6 +1600,19 @@ document.addEventListener('DOMContentLoaded', () => {
       state.firstPerson = !state.firstPerson; renderFirstPerson();
     });
   }
+
+  // ensure FP state resets transforms when toggled off or when map re-renders
+  const originalRenderMap = renderMap;
+  renderMap = function() {
+    originalRenderMap();
+    // reset any FP scaling if FP is off
+    if (!state.firstPerson && worldInner) {
+      worldInner.style.transform = `translate(${-cameraX}px, ${-cameraY}px)`;
+      if (fpView) { fpView.style.boxShadow = ''; }
+    }
+    // re-render FP text if enabled
+    if (state.firstPerson) renderFirstPerson();
+  };
   
 
   // keyboard shortcut: press 'A' to open achievements when on the game screen

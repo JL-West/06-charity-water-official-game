@@ -1425,7 +1425,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (helpBtn) {
     helpBtn.addEventListener('click', () => {
-      alert('Help:\n1) Select an item from the shop or drag it onto a plot.\n2) Click a plot on the map to place it.\n3) Press Deliver Supplies to deliver resources and earn money.\n\nFirst-person mode: Click the "👁️ FP" button in the header to toggle a simple first-person view while keeping the map visible. The quest tile is highlighted on the map.\n\nConfiguration: Open the Configuration panel on the right (under Challenges) to tune enemy density and theft chance for deliveries. Changes apply immediately for this session.\n\nAchievements: Click the trophy button in the header (🏆) to view achievements. Challenges rotate each session and are visible in the Challenges panel.');
+      alert('Help:\n1) Select an item from the shop or drag it onto a plot.\n2) Click a plot on the map to place it.\n3) Press Deliver Supplies to deliver resources and earn money.\n\nConfiguration: Open the Configuration panel on the right (under Challenges) to tune enemy density and theft chance for deliveries. Changes apply immediately for this session.\n\nAchievements: Click the trophy button in the header (🏆) to view achievements. Challenges rotate each session and are visible in the Challenges panel.');
     });
   }
   // --- New UI: Difficulty select, Achievements, and Challenges wiring
@@ -1436,8 +1436,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeAchievementsBtn = document.getElementById('closeAchievementsBtn');
   const clearAchievementsBtn = document.getElementById('clearAchievementsBtn');
   const challengesListEl = document.getElementById('challengesList');
-  const toggleFPBtn = document.getElementById('toggleFPBtn');
-  const fpView = document.getElementById('fpView');
 
   // shared opener for achievements dialog (defensive event stops included)
   function openAchievements(ev) {
@@ -1561,58 +1559,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // First-person toggle: show a simple FP panel while keeping the map visible
-  state.firstPerson = !!state.firstPerson;
-  function renderFirstPerson() {
-    if (!fpView) return;
-    if (!state.firstPerson) { fpView.classList.add('hidden'); fpView.setAttribute('aria-hidden','true'); return; }
-    fpView.classList.remove('hidden'); fpView.setAttribute('aria-hidden','false');
-    const idx = state.playerPosIndex;
-    const questIdx = state.questNpcIndex;
-    const dx = (questIdx % MAP_COLS) - (idx % MAP_COLS);
-    const dy = Math.floor(questIdx / MAP_COLS) - Math.floor(idx / MAP_COLS);
-    const dir = dx === 0 && dy === 0 ? 'here' : `${Math.abs(dx)} right/left ${Math.abs(dy)} down/up`;
-    const distance = Math.abs(dx) + Math.abs(dy);
-    const txt = `First-person: Plot ${idx + 1} — Facing the world. Quest ${distance} tiles away (${dir}).`;
-    const el = document.getElementById('fpText'); if (el) el.textContent = txt;
-    // Emulate a simple FP viewport by applying a CSS zoom + center effect on the worldInner
-    try {
-      // small zoom: center map on the player's tile and scale up slightly
-      if (worldInner) {
-        const px = idx % MAP_COLS;
-        const py = Math.floor(idx / MAP_COLS);
-        const cx = px * TILE_W + TILE_W / 2;
-        const cy = py * TILE_H + TILE_H / 2;
-        // compute transform to center on player's tile and scale
-        const viewW = mapGridEl.clientWidth;
-        const viewH = mapGridEl.clientHeight;
-        const tx = Math.max(0, Math.min(cx - viewW / 2, Math.max(0, worldInner.clientWidth - viewW)));
-        const ty = Math.max(0, Math.min(cy - viewH / 2, Math.max(0, worldInner.clientHeight - viewH)));
-        worldInner.style.transform = `translate(${-tx}px, ${-ty}px) scale(1.12)`;
-        // add a subtle vignette to the fpView panel to simulate looking forward
-        fpView.style.boxShadow = 'inset 0 -40px 80px rgba(0,0,0,0.08)';
-      }
-    } catch (e) {}
-  }
-  if (toggleFPBtn) {
-    toggleFPBtn.addEventListener('click', (ev) => {
-      try { ev && ev.preventDefault && ev.preventDefault(); } catch (e) {}
-      state.firstPerson = !state.firstPerson; renderFirstPerson();
-    });
-  }
-
-  // ensure FP state resets transforms when toggled off or when map re-renders
-  const originalRenderMap = renderMap;
-  renderMap = function() {
-    originalRenderMap();
-    // reset any FP scaling if FP is off
-    if (!state.firstPerson && worldInner) {
-      worldInner.style.transform = `translate(${-cameraX}px, ${-cameraY}px)`;
-      if (fpView) { fpView.style.boxShadow = ''; }
-    }
-    // re-render FP text if enabled
-    if (state.firstPerson) renderFirstPerson();
-  };
+  // First-person view removed for production build. map rendering uses the default renderMap behavior.
   
 
   // keyboard shortcut: press 'A' to open achievements when on the game screen

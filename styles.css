@@ -314,9 +314,7 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 .enemy-marker { font-size:14px; color: #b91c1c; pointer-events: none; }
 .map-tile.quest-target { box-shadow: 0 0 0 3px rgba(34,197,94,0.12); border: 2px solid rgba(34,197,94,0.12); }
 
-/* First-person view panel */
-.fp-view { background: linear-gradient(180deg,#fffef8,#fffaf0); border: 1px solid #fde68a; box-shadow: 0 8px 20px rgba(250,204,21,0.06); border-radius: 8px; padding: 10px; font-family: Georgia, 'Times New Roman', serif; color: #0f172a; }
-.fp-view strong { color: #0f5132; }
+/* First-person view removed for production — styles removed */
 
 /* Configuration panel styles */
 .config { display:flex; flex-direction:column; gap:8px; }

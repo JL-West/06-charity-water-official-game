@@ -189,6 +189,11 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 .sponsor-bar .sponsor-link { color: inherit; text-decoration: none; display:inline-flex; align-items:center; }
 .sponsor-bar .sponsor-link:hover { opacity: 0.92; text-decoration: underline; }
 
+/* Defensive rule: make the sponsor link color explicit so it can't be hidden by cascade or browser defaults */
+.sponsor-bar .sponsor-link { color: var(--brand-blue); }
+.sponsor-bar .sponsor-link:focus { outline: 3px solid color-mix(in srgb, var(--brand-blue) 30%, white 70%); outline-offset: 2px; }
+.sponsor-bar .sponsor-name { margin-left: 6px; display: inline-block; }
+
 /* Center content in main screen with an overlay panel effect */
 #screen-1 .intro-card { background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.82)); box-shadow: 0 8px 30px rgba(2,6,23,0.18); }
 

@@ -1409,7 +1409,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (achievementsBtn) {
     achievementsBtn.addEventListener('click', (ev) => {
-      try { if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation(); console.log('achievementsBtn clicked'); } catch (e) {}
+      try {
+        if (ev) {
+          ev.preventDefault && ev.preventDefault();
+          ev.stopImmediatePropagation && ev.stopImmediatePropagation();
+          ev.stopPropagation && ev.stopPropagation();
+        }
+        console.log('achievementsBtn clicked');
+      } catch (e) {}
       renderAchievements();
       if (achievementsDialog) { achievementsDialog.classList.remove('hidden'); achievementsDialog.setAttribute('aria-hidden','false'); }
     });
@@ -1447,6 +1454,12 @@ document.addEventListener('DOMContentLoaded', () => {
       renderMap();
       updateInventory();
       updateHUD();
+      hideLoading();
+    });
+  }
+});
+// Log a message to the console to ensure the script is linked correctly
+console.log('JavaScript file is linked correctly.');
       hideLoading();
     });
   }

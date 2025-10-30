@@ -36,6 +36,13 @@ document.addEventListener('DOMContentLoaded', () => {
     console.warn('Failed to load saved state', e);
   }
 
+  // Ensure configuration defaults exist (can be tuned via the in-UI config panel)
+  if (!state.config) state.config = {
+    enemyCounts: { easy: 0, normal: 2, hard: 4 },
+    enemyDensity: 'auto', // auto uses enemyCounts, otherwise low/normal/high
+    theftChance: { easy: 0, normal: 0.10, hard: 0.25 }
+  };
+
   // Helper to place a specific item on a tile index (used by click and drop)
   function placeItemOnTile(index, item, tileEl) {
     if (!item) return;
@@ -215,10 +222,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // ensure we only spawn once per session unless map re-renders and we want to respawn
     if (Array.isArray(state.enemyTiles) && state.enemyTiles.length) return;
     state.enemyTiles = [];
+    // compute count using config overrides where present
+    let base = (state.config && state.config.enemyCounts && typeof state.config.enemyCounts.normal === 'number') ? state.config.enemyCounts.normal : 2;
     let count = 0;
-    if (state.difficulty === 'easy') count = 0;
-    else if (state.difficulty === 'normal') count = 2;
-    else if (state.difficulty === 'hard') count = 4;
+    const den = (state.config && state.config.enemyDensity) ? state.config.enemyDensity : 'auto';
+    if (den === 'low') count = Math.max(0, base - 1);
+    else if (den === 'normal') count = base;
+    else if (den === 'high') count = base + 2;
+    else {
+      // auto: use per-difficulty mapping from config if available
+      if (state.difficulty === 'easy') count = (state.config && state.config.enemyCounts && typeof state.config.enemyCounts.easy === 'number') ? state.config.enemyCounts.easy : 0;
+      else if (state.difficulty === 'normal') count = (state.config && state.config.enemyCounts && typeof state.config.enemyCounts.normal === 'number') ? state.config.enemyCounts.normal : 2;
+      else if (state.difficulty === 'hard') count = (state.config && state.config.enemyCounts && typeof state.config.enemyCounts.hard === 'number') ? state.config.enemyCounts.hard : 4;
+    }
     const forbidden = new Set([state.playerPosIndex, state.questNpcIndex]);
     const available = [];
     for (let i = 0; i < totalTiles; i++) if (!forbidden.has(i)) available.push(i);
@@ -242,8 +258,9 @@ document.addEventListener('DOMContentLoaded', () => {
       saveState(); renderMap(); updateInventory(); updateHUD();
       return;
     }
-    // otherwise steal some funds
-    const mult = state.difficulty === 'hard' ? 0.2 : 0.1;
+    // otherwise steal some funds (configurable)
+    const theftConf = (state.config && state.config.theftChance) ? state.config.theftChance : { easy:0, normal:0.1, hard:0.25 };
+    const mult = (typeof theftConf[state.difficulty] === 'number') ? theftConf[state.difficulty] : (state.difficulty === 'hard' ? 0.2 : 0.1);
     const lost = Math.max(1, Math.round(state.funds * mult));
     state.funds = Math.max(0, state.funds - lost);
     statusTextEl.textContent = `Robbers relieved you of $${lost}! Stay vigilant.`;
@@ -1141,6 +1158,17 @@ document.addEventListener('DOMContentLoaded', () => {
       checkAchievements();
       // update challenge progress for deliver-type challenges
       updateChallengeProgress('deliver', gainedAdj);
+      // possible theft on delivery (configurable)
+      try {
+        const theftConf = (state.config && state.config.theftChance) ? state.config.theftChance : { easy:0, normal:0.10, hard:0.25 };
+        const theftChance = (typeof theftConf[state.difficulty] === 'number') ? theftConf[state.difficulty] : 0;
+        if (Math.random() < theftChance) {
+          const lostW = Math.min(state.waterDelivered, Math.max(1, Math.round(gainedAdj * 0.25)));
+          state.waterDelivered = Math.max(0, state.waterDelivered - lostW);
+          statusTextEl.textContent = `During delivery some supplies were lost (${lostW}). Be careful!`;
+          saveState(); updateHUD();
+        }
+      } catch (e) {}
       try { sound.play('deliver'); } catch (e) {}
     });
   }
@@ -1397,7 +1425,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (helpBtn) {
     helpBtn.addEventListener('click', () => {
-      alert('Help:\n1) Select an item from the shop.\n2) Click a plot on the map to place it.\n3) Press Deliver Supplies to deliver resources and earn money.');
+      alert('Help:\n1) Select an item from the shop or drag it onto a plot.\n2) Click a plot on the map to place it.\n3) Press Deliver Supplies to deliver resources and earn money.\n\nFirst-person mode: Click the "👁️ FP" button in the header to toggle a simple first-person view while keeping the map visible. The quest tile is highlighted on the map.\n\nConfiguration: Open the Configuration panel on the right (under Challenges) to tune enemy density and theft chance for deliveries. Changes apply immediately for this session.\n\nAchievements: Click the trophy button in the header (🏆) to view achievements. Challenges rotate each session and are visible in the Challenges panel.');
     });
   }
   // --- New UI: Difficulty select, Achievements, and Challenges wiring
@@ -1494,6 +1522,43 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (achievementsBtn) {
     achievementsBtn.addEventListener('click', openAchievements);
+  }
+
+  // Configuration UI wiring
+  const enemyDensitySelect = document.getElementById('enemyDensity');
+  const theftChanceSlider = document.getElementById('theftChanceSlider');
+  const resetConfigBtn = document.getElementById('resetConfigBtn');
+  function applyConfigUI() {
+    if (enemyDensitySelect) enemyDensitySelect.value = state.config && state.config.enemyDensity ? state.config.enemyDensity : 'auto';
+    if (theftChanceSlider && state.config && state.config.theftChance) {
+      const val = Math.round((state.config.theftChance.normal || 0) * 100);
+      theftChanceSlider.value = String(val);
+    }
+  }
+  applyConfigUI();
+  if (enemyDensitySelect) {
+    enemyDensitySelect.addEventListener('change', (e) => {
+      state.config = state.config || {};
+      state.config.enemyDensity = e.target.value;
+      // force respawn of enemies on next render
+      state.enemyTiles = [];
+      saveState(); renderMap();
+    });
+  }
+  if (theftChanceSlider) {
+    theftChanceSlider.addEventListener('input', (e) => {
+      const v = Number(e.target.value) / 100;
+      state.config = state.config || {};
+      state.config.theftChance = { easy: 0, normal: v, hard: Math.min(0.95, v * 2) };
+      saveState();
+    });
+  }
+  if (resetConfigBtn) {
+    resetConfigBtn.addEventListener('click', () => {
+      state.config = { enemyCounts: { easy: 0, normal: 2, hard: 4 }, enemyDensity: 'auto', theftChance: { easy: 0, normal: 0.10, hard: 0.25 } };
+      state.enemyTiles = [];
+      applyConfigUI(); saveState(); renderMap(); statusTextEl.textContent = 'Configuration reset to defaults.';
+    });
   }
 
   // First-person toggle: show a simple FP panel while keeping the map visible

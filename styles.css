@@ -309,6 +309,23 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 .player-emoji { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 20px; pointer-events: none; }
 .map-tile { position: relative; }
 
+/* Enemy and quest visuals */
+.map-tile.enemy { box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18); border: 2px dashed rgba(245,158,11,0.18); }
+.enemy-marker { font-size:14px; color: #b91c1c; pointer-events: none; }
+.map-tile.quest-target { box-shadow: 0 0 0 3px rgba(34,197,94,0.12); border: 2px solid rgba(34,197,94,0.12); }
+
+/* First-person view panel */
+.fp-view { background: linear-gradient(180deg,#fffef8,#fffaf0); border: 1px solid #fde68a; box-shadow: 0 8px 20px rgba(250,204,21,0.06); border-radius: 8px; padding: 10px; font-family: Georgia, 'Times New Roman', serif; color: #0f172a; }
+.fp-view strong { color: #0f5132; }
+
+/* Configuration panel styles */
+.config { display:flex; flex-direction:column; gap:8px; }
+.config .row { display:flex; gap:8px; align-items:center; }
+.config label { min-width:140px; font-size:0.9rem; color:#374151; }
+.config input[type="range"] { flex:1; }
+.config select { padding:6px; border-radius:6px; }
+
+
 /* Shop list */
 .shop-list { display: flex; flex-direction: column; gap: 8px; }
 .shop-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-radius: 6px; background: #fafafa; border: 1px solid #eef2f7; }

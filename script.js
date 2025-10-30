@@ -1337,11 +1337,26 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- New UI: Difficulty select, Achievements, and Challenges wiring
   const difficultySelect = document.getElementById('difficultySelect');
   const achievementsBtn = document.getElementById('achievementsBtn');
+  const achievementsBtnMain = document.getElementById('achievementsBtnMain');
   const achievementsDialog = document.getElementById('achievementsDialog');
   const achievementsListEl = document.getElementById('achievementsList');
   const closeAchievementsBtn = document.getElementById('closeAchievementsBtn');
   const clearAchievementsBtn = document.getElementById('clearAchievementsBtn');
   const challengesListEl = document.getElementById('challengesList');
+
+  // shared opener for achievements dialog (defensive event stops included)
+  function openAchievements(ev) {
+    try {
+      if (ev) {
+        ev.preventDefault && ev.preventDefault();
+        ev.stopImmediatePropagation && ev.stopImmediatePropagation();
+        ev.stopPropagation && ev.stopPropagation();
+      }
+      console.log('openAchievements invoked');
+    } catch (e) {}
+    renderAchievements();
+    if (achievementsDialog) { achievementsDialog.classList.remove('hidden'); achievementsDialog.setAttribute('aria-hidden','false'); }
+  }
 
   function renderChallenges() {
     if (!challengesListEl) return;
@@ -1408,18 +1423,10 @@ document.addEventListener('DOMContentLoaded', () => {
     difficultySelect.addEventListener('change', (e) => { state.difficulty = e.target.value || 'normal'; saveState(); statusTextEl.textContent = `Difficulty set to ${state.difficulty}`; });
   }
   if (achievementsBtn) {
-    achievementsBtn.addEventListener('click', (ev) => {
-      try {
-        if (ev) {
-          ev.preventDefault && ev.preventDefault();
-          ev.stopImmediatePropagation && ev.stopImmediatePropagation();
-          ev.stopPropagation && ev.stopPropagation();
-        }
-        console.log('achievementsBtn clicked');
-      } catch (e) {}
-      renderAchievements();
-      if (achievementsDialog) { achievementsDialog.classList.remove('hidden'); achievementsDialog.setAttribute('aria-hidden','false'); }
-    });
+    achievementsBtn.addEventListener('click', openAchievements);
+  }
+  if (achievementsBtnMain) {
+    achievementsBtnMain.addEventListener('click', openAchievements);
   }
 
   // keyboard shortcut: press 'A' to open achievements when on the game screen

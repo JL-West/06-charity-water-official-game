@@ -204,19 +204,19 @@
                         <button id="resetConfirmBtn" class="btn primary">Confirm</button>
                     </div>
                 </div>
+            </div>
 
-                <!-- Achievements dialog -->
-                <div id="achievementsDialog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="achievementsTitle">
-                    <div class="modal-backdrop"></div>
-                    <div class="modal-content">
-                        <h3 id="achievementsTitle">Achievements</h3>
-                        <div id="achievementsList" style="max-height:320px;overflow:auto;margin-top:8px;">
-                            <!-- Achievements rendered by JS -->
-                        </div>
-                        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
-                            <button id="clearAchievementsBtn" class="btn">Clear</button>
-                            <button id="closeAchievementsBtn" class="btn primary">Close</button>
-                        </div>
+            <!-- Achievements dialog (kept separate, sibling to confirm dialog) -->
+            <div id="achievementsDialog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="achievementsTitle">
+                <div class="modal-backdrop"></div>
+                <div class="modal-content">
+                    <h3 id="achievementsTitle">Achievements</h3>
+                    <div id="achievementsList" style="max-height:320px;overflow:auto;margin-top:8px;">
+                        <!-- Achievements rendered by JS -->
+                    </div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+                        <button id="clearAchievementsBtn" class="btn">Clear</button>
+                        <button id="closeAchievementsBtn" class="btn primary">Close</button>
                     </div>
                 </div>
             </div>

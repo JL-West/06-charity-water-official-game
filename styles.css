@@ -79,6 +79,10 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 	display: block;
 }
 
+/* Clickable jerrycan CTA below the preview (smaller than the preview wireframe) */
+.jerrycan-cta { text-align: center; margin-top: 10px; }
+.jerrycan-cta .big-jerry { width: 180px; }
+
 /* World viewport (replaces strict grid visuals with an immersive world) */
 .map-grid, .world {
 	/* world/viewport: fixed height with hidden overflow; JS will size the inner world */

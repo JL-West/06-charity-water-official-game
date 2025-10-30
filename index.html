@@ -26,6 +26,12 @@
                     <text x="20" y="40" fill="#6b7280" font-size="12">Intro wireframe (drop your PNG as <tspan font-weight="bold">img/wireframe.png</tspan>)</text>
                 </svg>
             </div>
+                <!-- Clickable jerrycan credit image: links to charity:water and shows a hover tooltip -->
+                <div class="jerrycan-cta">
+                    <a class="jerrycan-link" href="https://www.charitywater.org/" target="_blank" rel="noopener noreferrer" title="Brought to You By charity:water">
+                        <img src="img/water-can.png" alt="charity:water jerrycan" class="big-jerry" />
+                    </a>
+                </div>
                 <div class="intro-actions">
                     <button id="loadBtn" class="btn">Continue (Load)</button>
                     <button id="createCharBtn" class="btn">Create Character</button>
@@ -42,8 +48,6 @@
                         <!-- water rect (we update height and y via JS). initial height=0 -->
                         <rect id="jerryWater" x="3" y="36" width="30" height="0" fill="#2ea7f7" />
                     </svg>
-                    <!-- small credit inside/below the jerrycan area -->
-                    <a class="jerrycan-credit" href="https://www.charitywater.org/" target="_blank" rel="noopener noreferrer">Brought to You By charity:water</a>
                     <span class="inline-spinner" aria-hidden="true"></span>
                     <span id="inlineIndicatorText" class="inline-text">Loading...</span>
                     <span id="inlineIndicatorPct" class="inline-pct">0%</span>

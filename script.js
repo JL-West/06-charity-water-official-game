@@ -807,12 +807,14 @@ document.addEventListener('DOMContentLoaded', () => {
         resetCancelBtn && resetCancelBtn.removeEventListener('click', onCancel);
       }
 
-      function onConfirm() {
+      function onConfirm(ev) {
+        try { if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation(); } catch (e) {}
         const wipe = !!(wipeCharacterCheckbox && wipeCharacterCheckbox.checked);
         cleanup();
         resolve({ confirmed: true, wipe });
       }
-      function onCancel() {
+      function onCancel(ev) {
+        try { if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation(); } catch (e) {}
         cleanup();
         resolve({ confirmed: false, wipe: false });
       }
@@ -1406,20 +1408,10 @@ document.addEventListener('DOMContentLoaded', () => {
     difficultySelect.addEventListener('change', (e) => { state.difficulty = e.target.value || 'normal'; saveState(); statusTextEl.textContent = `Difficulty set to ${state.difficulty}`; });
   }
   if (achievementsBtn) {
-    achievementsBtn.addEventListener('click', () => {
-      try { console.log('achievementsBtn clicked'); } catch (e) {}
+    achievementsBtn.addEventListener('click', (ev) => {
+      try { if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation(); console.log('achievementsBtn clicked'); } catch (e) {}
       renderAchievements();
       if (achievementsDialog) { achievementsDialog.classList.remove('hidden'); achievementsDialog.setAttribute('aria-hidden','false'); }
-    });
-  } else {
-    // fallback: delegated click in case the button is added dynamically or masked by layout
-    document.body.addEventListener('click', (ev) => {
-      const btn = ev.target.closest && ev.target.closest('#achievementsBtn');
-      if (btn) {
-        try { console.log('achievementsBtn delegated click'); } catch (e) {}
-        renderAchievements();
-        if (achievementsDialog) { achievementsDialog.classList.remove('hidden'); achievementsDialog.setAttribute('aria-hidden','false'); }
-      }
     });
   }
 

@@ -1406,8 +1406,32 @@ document.addEventListener('DOMContentLoaded', () => {
     difficultySelect.addEventListener('change', (e) => { state.difficulty = e.target.value || 'normal'; saveState(); statusTextEl.textContent = `Difficulty set to ${state.difficulty}`; });
   }
   if (achievementsBtn) {
-    achievementsBtn.addEventListener('click', () => { renderAchievements(); achievementsDialog && achievementsDialog.classList.remove('hidden'); if (achievementsDialog) achievementsDialog.setAttribute('aria-hidden','false'); });
+    achievementsBtn.addEventListener('click', () => {
+      try { console.log('achievementsBtn clicked'); } catch (e) {}
+      renderAchievements();
+      if (achievementsDialog) { achievementsDialog.classList.remove('hidden'); achievementsDialog.setAttribute('aria-hidden','false'); }
+    });
+  } else {
+    // fallback: delegated click in case the button is added dynamically or masked by layout
+    document.body.addEventListener('click', (ev) => {
+      const btn = ev.target.closest && ev.target.closest('#achievementsBtn');
+      if (btn) {
+        try { console.log('achievementsBtn delegated click'); } catch (e) {}
+        renderAchievements();
+        if (achievementsDialog) { achievementsDialog.classList.remove('hidden'); achievementsDialog.setAttribute('aria-hidden','false'); }
+      }
+    });
   }
+
+  // keyboard shortcut: press 'A' to open achievements when on the game screen
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key && (ev.key === 'a' || ev.key === 'A')) {
+      // only open when game screen is visible
+      if (screen2 && screen2.classList.contains('hidden')) return;
+      renderAchievements();
+      if (achievementsDialog) { achievementsDialog.classList.remove('hidden'); achievementsDialog.setAttribute('aria-hidden','false'); }
+    }
+  });
   if (closeAchievementsBtn) {
     closeAchievementsBtn.addEventListener('click', () => { if (achievementsDialog) { achievementsDialog.classList.add('hidden'); achievementsDialog.setAttribute('aria-hidden','true'); } });
   }

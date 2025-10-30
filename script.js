@@ -174,9 +174,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- New: Challenges and Achievements data (small, beginner-friendly)
-  const CHALLENGES = [
+  // Challenge pool: we'll pick a small rotating subset each day/session to keep things fresh
+  const CHALLENGE_POOL = [
     { id: 'c_deliver10', title: 'Deliver 10 Supplies', desc: 'Deliver 10 supplies via Deliver action.', type: 'deliver', target: 10, rewardGold: 40 },
     { id: 'c_place3', title: 'Place 3 Items', desc: 'Place 3 items on the map (any).', type: 'place', target: 3, rewardGold: 25 },
+    { id: 'c_deliver5', title: 'Quick Deliver', desc: 'Deliver 5 supplies in one session.', type: 'deliver', target: 5, rewardGold: 20 },
+    { id: 'c_place1', title: 'First Placement', desc: 'Place your first item on the map.', type: 'place', target: 1, rewardGold: 8 },
+    { id: 'c_place5', title: 'Builder', desc: 'Place 5 items on the map.', type: 'place', target: 5, rewardGold: 45 },
+    { id: 'c_deliver20', title: 'Generous Aid', desc: 'Deliver 20 supplies (accumulated).', type: 'deliver', target: 20, rewardGold: 80 },
   ];
 
   // Achievement mapping for display
@@ -184,6 +189,27 @@ document.addEventListener('DOMContentLoaded', () => {
     '100S': { name: '100 Supplies', desc: 'Delivered 100 supplies in total.' },
     'PLACED1': { name: 'First Placement', desc: 'Placed your first item on the map.' },
   };
+
+  // Choose a small rotating subset of challenges each day (deterministic per-day seed)
+  function seedDailyChallenges() {
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    // If already seeded for today, keep it
+    if (state.dailyChallengeDate === today && Array.isArray(state.dailyChallenges) && state.dailyChallenges.length) return;
+    // Simple deterministic PRNG seeded by date
+    let seed = 0;
+    for (let i = 0; i < today.length; i++) seed = (seed * 31 + today.charCodeAt(i)) >>> 0;
+    function rand() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+    const pool = CHALLENGE_POOL.slice();
+    const pickCount = Math.min(3, pool.length);
+    const chosen = [];
+    for (let i = 0; i < pickCount; i++) {
+      const idx = Math.floor(rand() * pool.length);
+      chosen.push(pool.splice(idx, 1)[0]);
+    }
+    state.dailyChallenges = chosen;
+    state.dailyChallengeDate = today;
+    saveState();
+  }
 
   function animateJerryTo(targetPct, durationMs = 180) {
     if (!jerryWater) return;
@@ -1337,7 +1363,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- New UI: Difficulty select, Achievements, and Challenges wiring
   const difficultySelect = document.getElementById('difficultySelect');
   const achievementsBtn = document.getElementById('achievementsBtn');
-  const achievementsBtnMain = document.getElementById('achievementsBtnMain');
   const achievementsDialog = document.getElementById('achievementsDialog');
   const achievementsListEl = document.getElementById('achievementsList');
   const closeAchievementsBtn = document.getElementById('closeAchievementsBtn');
@@ -1361,7 +1386,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderChallenges() {
     if (!challengesListEl) return;
     challengesListEl.innerHTML = '';
-    CHALLENGES.forEach(ch => {
+    // ensure we have a seeded daily set
+    seedDailyChallenges();
+    const list = Array.isArray(state.dailyChallenges) && state.dailyChallenges.length ? state.dailyChallenges : CHALLENGE_POOL;
+    list.forEach(ch => {
       const div = document.createElement('div');
       div.className = 'challenge';
       const progress = state.challengeProgress[ch.id] || 0;
@@ -1425,9 +1453,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (achievementsBtn) {
     achievementsBtn.addEventListener('click', openAchievements);
   }
-  if (achievementsBtnMain) {
-    achievementsBtnMain.addEventListener('click', openAchievements);
-  }
+  
 
   // keyboard shortcut: press 'A' to open achievements when on the game screen
   document.addEventListener('keydown', (ev) => {

@@ -205,6 +205,17 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 .sponsor-bar .sponsor-link { text-decoration: underline; text-underline-offset: 2px; }
 .sponsor-bar .sponsor-link:hover { opacity: 0.95; }
 
+/* Small Figma link shown inside the sponsor bar (subtle, readable on dark background) */
+.sponsor-inner .figma-link {
+	color: rgba(255,255,255,0.92);
+	background: transparent;
+	text-decoration: none;
+	font-size: 0.86rem;
+	padding-left: 8px;
+}
+.sponsor-inner .figma-link:hover { text-decoration: underline; opacity: 0.98; }
+.sponsor-inner .sponsor-sep { color: rgba(255,255,255,0.62); margin: 0 6px; }
+
 /* Center content in main screen with an overlay panel effect */
 #screen-1 .intro-card { background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.82)); box-shadow: 0 8px 30px rgba(2,6,23,0.18); }
 

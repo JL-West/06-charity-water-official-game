@@ -80,7 +80,7 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 }
 
 /* Wireframe preview jerrycan link and tooltip */
-.wireframe-preview .jerrycan-link { position: relative; display: inline-block; }
+.wireframe-preview .jerrycan-link { position: relative; display: block; max-width: 420px; margin: 0 auto; padding: 6px; background: var(--brand-blue); border-radius: 10px; border: 4px solid var(--brand-green); box-shadow: 0 8px 20px rgba(2,6,23,0.08); }
 .jerrycan-tooltip {
 	position: absolute;
 	left: 50%;
@@ -104,6 +104,9 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 	opacity: 1;
 	transform: translateX(-50%) translateY(0);
 }
+
+/* Ensure the image fills the jerrycan link container */
+.jerrycan-link .big-jerry { width: 100%; height: auto; border-radius: 6px; display: block; }
 
 /* World viewport (replaces strict grid visuals with an immersive world) */
 .map-grid, .world {

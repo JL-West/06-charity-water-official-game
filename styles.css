@@ -183,6 +183,18 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 	text-align: center;
 	z-index: 30;
 }
+
+/* Inner container keeps the bar the same width as the intro card and centers it */
+.sponsor-inner {
+	max-width: 420px; /* matches .intro-card width */
+	width: 100%;
+	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
 .sponsor-bar .sponsor-name { margin-left: 6px; }
 
 /* Sponsorship link styling: keep the charity:water blue, remove underline, subtle hover */
@@ -193,6 +205,10 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 .sponsor-bar .sponsor-link { color: var(--brand-blue); }
 .sponsor-bar .sponsor-link:focus { outline: 3px solid color-mix(in srgb, var(--brand-blue) 30%, white 70%); outline-offset: 2px; }
 .sponsor-bar .sponsor-name { margin-left: 6px; display: inline-block; }
+
+/* Make the link more visible by default: slight underline and stronger contrast */
+.sponsor-bar .sponsor-link { text-decoration: underline; text-underline-offset: 2px; }
+.sponsor-bar .sponsor-link:hover { opacity: 0.95; }
 
 /* Center content in main screen with an overlay panel effect */
 #screen-1 .intro-card { background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.82)); box-shadow: 0 8px 30px rgba(2,6,23,0.18); }

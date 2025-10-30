@@ -128,6 +128,20 @@
                     <p>Prepare supplies and help the nearby hamlet — undertake quests and bring aid.</p>
                     <button id="startMission" class="btn primary">Restart</button>
                 </section>
+
+                <!-- Configuration panel moved here so it doesn't block the Challenges panel -->
+                <section id="configPanel" class="config card" style="margin-top:12px;">
+                    <h3>Configuration</h3>
+                    <div class="row"><label for="enemyDensity">Enemy density</label>
+                        <select id="enemyDensity"><option value="auto">Auto (per difficulty)</option><option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option></select>
+                    </div>
+                    <div class="row"><label for="theftChanceSlider">Theft chance (deliveries)</label>
+                        <input id="theftChanceSlider" type="range" min="0" max="50" step="1" value="10" aria-label="Theft chance percent" />
+                    </div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px;">
+                        <button id="resetConfigBtn" class="btn">Reset Defaults</button>
+                    </div>
+                </section>
             </aside>
 
             <!-- Center: map / placement area -->
@@ -169,19 +183,7 @@
                         <!-- JS will render daily/rotating challenges here -->
                     </div>
                 </section>
-                <!-- Configuration panel: tuning gameplay values -->
-                <section id="configPanel" class="config card" style="margin-top:12px;">
-                    <h3>Configuration</h3>
-                    <div class="row"><label for="enemyDensity">Enemy density</label>
-                        <select id="enemyDensity"><option value="auto">Auto (per difficulty)</option><option value="low">Low</option><option value="normal">Normal</option><option value="high">High</option></select>
-                    </div>
-                    <div class="row"><label for="theftChanceSlider">Theft chance (deliveries)</label>
-                        <input id="theftChanceSlider" type="range" min="0" max="50" step="1" value="10" aria-label="Theft chance percent" />
-                    </div>
-                    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px;">
-                        <button id="resetConfigBtn" class="btn">Reset Defaults</button>
-                    </div>
-                </section>
+                
                 <!-- Move Help button here so header isn't crowded -->
                 <div style="margin-top:12px; text-align:center;">
                     <button id="helpBtn" class="btn">Help</button>

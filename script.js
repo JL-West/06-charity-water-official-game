@@ -49,12 +49,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const tile = tileEl || worldInner && worldInner.querySelector(`.map-tile[data-index="${index}"]`);
     const existing = state.placedItems.find(p => p.index === index);
     if (existing) {
-      const refund = Math.ceil(existing.item.cost / 2);
-      state.funds += refund;
+  const refund = Math.ceil(existing.item.cost / 2);
+  state.funds += refund;
       state.placedItems = state.placedItems.filter(p => p.index !== index);
       if (tile) { tile.classList.remove('placed'); tile.querySelector('.tile-item').textContent = ''; }
       updateInventory(); updateHUD(); saveState();
-      statusTextEl.textContent = `Removed ${existing.item.name} from this plot. Refunded $${refund}.`;
+  statusTextEl.textContent = `Removed ${existing.item.name} from this plot. Refunded ${refund} crowns.`;
       try { sound.play('place'); } catch (e) {}
       return;
     }
@@ -154,6 +154,26 @@ document.addEventListener('DOMContentLoaded', () => {
     state.questAvailable = true;
   }
 
+  // Migrate to multi-NPC support: maintain backward compatibility with older saved state
+  if (!Array.isArray(state.npcs) || state.npcs.length === 0) {
+    state.npcs = [];
+    if (typeof state.questNpcIndex !== 'undefined' && state.questNpcIndex !== null) {
+      // migrate old single NPC into the new structure
+      state.npcs.push({ id: 'npc-1', index: state.questNpcIndex, available: !!state.questAvailable, accepted: !!state.questAccepted, name: 'Villager' });
+    } else {
+      // seed a few NPCs at random positions (avoid player's tile)
+      const names = ['Marta','Gareth','Hilde','Roland','Alda'];
+      const availablePos = [];
+      for (let i = 0; i < totalTiles; i++) if (i !== state.playerPosIndex) availablePos.push(i);
+      const npcCount = Math.min(3, Math.max(1, Math.floor(availablePos.length / 6)));
+      for (let i = 0; i < npcCount; i++) {
+        const idx = Math.floor(Math.random() * availablePos.length);
+        const pos = availablePos.splice(idx, 1)[0];
+        state.npcs.push({ id: `npc-${i+1}`, index: pos, available: true, accepted: false, name: names[i % names.length] });
+      }
+    }
+  }
+
   // Simple loader implementation using the small overlay added to index.html
   // Inline indicator implementation (non-blocking)
   const inlineIndicator = document.getElementById('inlineIndicator');
@@ -235,7 +255,9 @@ document.addEventListener('DOMContentLoaded', () => {
       else if (state.difficulty === 'normal') count = (state.config && state.config.enemyCounts && typeof state.config.enemyCounts.normal === 'number') ? state.config.enemyCounts.normal : 2;
       else if (state.difficulty === 'hard') count = (state.config && state.config.enemyCounts && typeof state.config.enemyCounts.hard === 'number') ? state.config.enemyCounts.hard : 4;
     }
-    const forbidden = new Set([state.playerPosIndex, state.questNpcIndex]);
+  // forbid player tile and any NPC tiles
+  const npcIndices = Array.isArray(state.npcs) ? state.npcs.map(n=>n.index) : [];
+  const forbidden = new Set([state.playerPosIndex].concat(npcIndices));
     const available = [];
     for (let i = 0; i < totalTiles; i++) if (!forbidden.has(i)) available.push(i);
     for (let i = 0; i < count && available.length; i++) {
@@ -253,7 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (placed) {
       // remove item without refund to simulate theft
       state.placedItems = state.placedItems.filter(p => p.index !== index);
-      statusTextEl.textContent = `A bandit stole the ${placed.item.name} from Plot ${index + 1}!`; 
+      statusTextEl.textContent = `A bandit stole the ${placed.item.name} from Plot ${index + 1}!`;
       try { sound.play('place'); } catch (e) {}
       saveState(); renderMap(); updateInventory(); updateHUD();
       return;
@@ -261,9 +283,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // otherwise steal some funds (configurable)
     const theftConf = (state.config && state.config.theftChance) ? state.config.theftChance : { easy:0, normal:0.1, hard:0.25 };
     const mult = (typeof theftConf[state.difficulty] === 'number') ? theftConf[state.difficulty] : (state.difficulty === 'hard' ? 0.2 : 0.1);
-    const lost = Math.max(1, Math.round(state.funds * mult));
-    state.funds = Math.max(0, state.funds - lost);
-    statusTextEl.textContent = `Robbers relieved you of $${lost}! Stay vigilant.`;
+  const lost = Math.max(1, Math.round(state.funds * mult));
+  state.funds = Math.max(0, state.funds - lost);
+  statusTextEl.textContent = `Robbers relieved you of ${lost} crowns! Stay vigilant.`;
     try { sound.play('place'); } catch (e) {}
     saveState(); updateHUD();
   }
@@ -630,9 +652,12 @@ document.addEventListener('DOMContentLoaded', () => {
     state.missionActive = false;
     state.missionTimeLeft = 0;
     state.achievements = [];
-    // Reset quest state
-    state.questAvailable = true;
-    state.questAccepted = false;
+    // Reset per-NPC quest state (mark all NPCs as available again)
+    if (Array.isArray(state.npcs)) {
+      state.npcs.forEach(n => { n.available = true; n.accepted = false; });
+    }
+    // legacy flags (for older saves) - clear to avoid confusion
+    state.questAvailable = true; state.questAccepted = false;
     // Reset player pos to center
     state.playerPosIndex = Math.floor(totalTiles / 2);
     // restore character if requested to keep
@@ -683,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
       itemEl.dataset.itemId = item.id;
       itemEl.innerHTML = `
         <div class="meta">
-          <strong>${item.name}</strong><div style="font-size:0.85rem;color:#6b7280;">$${item.cost}</div>
+            <strong>${item.name}</strong><div style="font-size:0.85rem;color:#6b7280;">${item.cost} crowns</div>
         </div>
       `;
       const buyBtn = document.createElement('button');
@@ -789,38 +814,41 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderNpc() {
-    if (!worldInner) return;
-    // remove previous npc if any
-    let npc = worldInner.querySelector('.npc-entity');
-    if (!npc) {
-      npc = document.createElement('div');
-      npc.className = 'npc-entity';
-      npc.setAttribute('aria-hidden', 'true');
-      const badge = document.createElement('div');
-      badge.className = 'npc-indicator';
-      npc.appendChild(badge);
-      worldInner.appendChild(npc);
-      // clicking the NPC opens the dialog
-      npc.addEventListener('click', () => {
-        if (state.questAvailable) showNpcDialog();
-      });
-    }
-    const idx = state.questNpcIndex;
-    const nx = idx % MAP_COLS;
-    const ny = Math.floor(idx / MAP_COLS);
-    npc.style.left = `${nx * TILE_W + TILE_W / 2 - 18}px`;
-    npc.style.top = `${ny * TILE_H + TILE_H / 2 - 18}px`;
-    // show or hide indicator
-    const badge = npc.querySelector('.npc-indicator');
-    if (state.questAvailable) {
-      badge.textContent = '❗';
-      npc.classList.remove('quest-complete');
-      badge.title = 'Quest available';
-    } else {
-      badge.textContent = '✓';
-      npc.classList.add('quest-complete');
-      badge.title = 'Quest completed';
-    }
+    if (!worldInner || !Array.isArray(state.npcs)) return;
+    // create or update npc elements for each NPC in state.npcs
+    state.npcs.forEach(npcObj => {
+      let el = worldInner.querySelector(`.npc-entity[data-npc-id="${npcObj.id}"]`);
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'npc-entity';
+        el.setAttribute('aria-hidden', 'true');
+        el.setAttribute('data-npc-id', npcObj.id);
+        const badge = document.createElement('div');
+        badge.className = 'npc-indicator';
+        el.appendChild(badge);
+        // clicking the NPC opens the dialog for that NPC
+        el.addEventListener('click', () => {
+          if (npcObj.available) showNpcDialog(npcObj.id);
+        });
+        worldInner.appendChild(el);
+      }
+      const idx = npcObj.index;
+  const nx = idx % MAP_COLS;
+  const ny = Math.floor(idx / MAP_COLS);
+      // position element centered on tile
+      el.style.left = `${nx * TILE_W + TILE_W / 2 - 18}px`;
+      el.style.top = `${ny * TILE_H + TILE_H / 2 - 18}px`;
+      const badge = el.querySelector('.npc-indicator');
+      if (npcObj.available) {
+        badge.textContent = '❗';
+        el.classList.remove('quest-complete');
+        badge.title = npcObj.name + ' — Quest available';
+      } else {
+        badge.textContent = '✓';
+        el.classList.add('quest-complete');
+        badge.title = npcObj.name + ' — Quest completed';
+      }
+    });
   }
 
   // NPC dialog handlers
@@ -835,15 +863,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const resetCancelBtn = document.getElementById('resetCancelBtn');
   const resetConfirmBtn = document.getElementById('resetConfirmBtn');
 
-  function showNpcDialog() {
+  // Open NPC dialog for a given npcId
+  function showNpcDialog(npcId) {
     if (!npcDialog) return;
+    const npcObj = Array.isArray(state.npcs) ? state.npcs.find(n => n.id === npcId) : null;
+    if (!npcObj) return;
+    // remember which NPC is active in the dialog
+    state.activeNpcId = npcObj.id;
     npcDialog.classList.remove('hidden');
     npcDialog.setAttribute('aria-hidden', 'false');
-    if (state.questAccepted) {
+    if (npcObj.accepted) {
       npcDialogText.textContent = 'You have already accepted this quest. Return to the villager to hand it in.';
       npcAcceptBtn.textContent = 'Okay';
     } else {
-      npcDialogText.textContent = 'A villager asks for aid. Accept the quest to receive a reward for returning supplies.';
+      npcDialogText.textContent = `${npcObj.name} asks for aid. Accept the quest to receive a reward for returning supplies.`;
       npcAcceptBtn.textContent = 'Accept Quest';
     }
   }
@@ -856,10 +889,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (npcAcceptBtn) {
     npcAcceptBtn.addEventListener('click', () => {
-      if (!state.questAccepted) {
-        state.questAccepted = true;
+      const npcObj = Array.isArray(state.npcs) ? state.npcs.find(n => n.id === state.activeNpcId) : null;
+      if (npcObj && !npcObj.accepted) {
+        npcObj.accepted = true;
         saveState();
-        statusTextEl.textContent = 'Quest accepted: bring aid to the villager.';
+        statusTextEl.textContent = `Quest accepted from ${npcObj.name}: bring aid to the villager.`;
       }
       hideNpcDialog();
     });
@@ -1049,9 +1083,10 @@ document.addEventListener('DOMContentLoaded', () => {
       centerCameraOn(newIndex);
       // ensure player is visible (quick guard for edge cases)
       try { ensurePlayerInView(); } catch (e) {}
-      // if player moved onto NPC, auto-open dialog when quest available and not yet accepted
-      if (state.playerPosIndex === state.questNpcIndex && state.questAvailable && !state.questAccepted) {
-        showNpcDialog();
+      // if player moved onto an NPC, auto-open that NPC's dialog when quest available and not yet accepted
+      const npcHere = Array.isArray(state.npcs) ? state.npcs.find(n => n.index === state.playerPosIndex) : null;
+      if (npcHere && npcHere.available && !npcHere.accepted) {
+        showNpcDialog(npcHere.id);
       }
     });
   }
@@ -1111,15 +1146,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Deliver water logic
   if (deliverBtn) {
     deliverBtn.addEventListener('click', () => {
-      // If player is at NPC
-      if (state.playerPosIndex === state.questNpcIndex) {
-        // If quest available but not accepted, open dialog
-        if (state.questAvailable && !state.questAccepted) {
-          showNpcDialog();
+      // If player is at an NPC, handle per-NPC quest flow
+      const npcHere = Array.isArray(state.npcs) ? state.npcs.find(n => n.index === state.playerPosIndex) : null;
+      if (npcHere) {
+        if (npcHere.available && !npcHere.accepted) {
+          showNpcDialog(npcHere.id);
           return;
         }
-        // If quest accepted and available, complete it
-        if (state.questAvailable && state.questAccepted) {
+        if (npcHere.available && npcHere.accepted) {
           const baseQuestWater = 20;
           const baseQuestGold = 50;
           const mult = difficultyMultiplier();
@@ -1127,12 +1161,13 @@ document.addEventListener('DOMContentLoaded', () => {
           const questGold = Math.max(1, Math.round(baseQuestGold * mult));
           state.waterDelivered += questWater;
           state.funds += questGold;
-          state.questAvailable = false;
-          state.questAccepted = false;
+          // mark this NPC's quest complete
+          npcHere.available = false;
+          npcHere.accepted = false;
           updateHUD();
           saveState();
           renderNpc();
-          statusTextEl.textContent = `Quest complete! You delivered ${questWater} aid and earned ${questGold} gold (${state.difficulty}).`;
+          statusTextEl.textContent = `Quest complete! You delivered ${questWater} aid and earned ${questGold} crowns (${state.difficulty}).`;
           checkAchievements();
           updateChallengeProgress('deliver', questWater);
           try { sound.play('questComplete'); } catch (e) {}
@@ -1154,7 +1189,7 @@ document.addEventListener('DOMContentLoaded', () => {
       state.funds += reward;
       updateHUD();
       saveState();
-      statusTextEl.textContent = `Delivered ${gainedAdj} supplies to the hamlet. Earned ${reward} gold (${state.difficulty} mode).`;
+  statusTextEl.textContent = `Delivered ${gainedAdj} supplies to the hamlet. Earned ${reward} crowns (${state.difficulty} mode).`;
       checkAchievements();
       // update challenge progress for deliver-type challenges
       updateChallengeProgress('deliver', gainedAdj);
@@ -1487,8 +1522,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (next >= ch.target) {
       // complete challenge
       state.activeChallenge = null;
-      state.funds += ch.rewardGold || 10;
-      statusTextEl.textContent = `Challenge complete: ${ch.title}. Reward: $${ch.rewardGold || 10}`;
+  state.funds += ch.rewardGold || 10;
+  statusTextEl.textContent = `Challenge complete: ${ch.title}. Reward: ${ch.rewardGold || 10} crowns`;
       saveState();
       renderChallenges();
       checkAchievements();

@@ -224,6 +224,16 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 /* Increase padding so the bar isn't too narrow visually */
 .sponsor-bar { padding: 12px 16px; }
 
+/* Small credit link next to the inline jerrycan svg */
+.jerrycan-credit { color: var(--brand-blue); font-size: 0.78rem; text-decoration: none; align-self: flex-end; }
+.jerrycan-credit:hover { text-decoration: underline; }
+
+/* Jerrycan badge (visible credit overlay over the image) */
+.jerrycan-badge { position: relative; width: 160px; max-width: 100%; margin-left: auto; margin-right: auto; }
+.jerrycan-badge-img { display: block; width: 100%; height: auto; border-radius: 8px; box-shadow: 0 6px 18px rgba(2,6,23,0.08); }
+.jerrycan-badge-caption { position: absolute; left: 50%; transform: translateX(-50%); bottom: 6px; background: rgba(0,0,0,0.6); color: #ffffff; padding: 4px 8px; border-radius: 6px; font-family: Georgia, serif; font-weight:700; font-style:italic; font-size:0.76rem; text-decoration: none; }
+.jerrycan-badge-caption:hover { text-decoration: underline; }
+
 /* Center content in main screen with an overlay panel effect */
 #screen-1 .intro-card { background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.82)); box-shadow: 0 8px 30px rgba(2,6,23,0.18); }
 

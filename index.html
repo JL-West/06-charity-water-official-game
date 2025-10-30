@@ -15,13 +15,11 @@
         <div class="card intro-card">
             <h2>Adam's Ale</h2>
             <p class="lead">Welcome, traveller! Embark on a quest: place gear, gather supplies, and bring them to the hamlet.</p>
-            <!-- Wireframe preview: show a large jerrycan image (non-clickable). Use the Open Figma Wireframe button below to open the prototype. -->
+            <!-- Wireframe preview: replace img/wireframe.png with your exported Figma PNG to show the frame here -->
             <div class="wireframe-preview" style="margin:12px 0;">
-                <!-- Large jerrycan / water can image (falls back to SVG placeholder if image missing) -->
-                <img src="img/water-can.png" alt="Large jerrycan preview — use the Open Figma Wireframe button below to open the wireframe" class="big-jerry" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                <img src="img/wireframe.png" alt="Wireframe preview" onerror="this.style.display='none'" style="max-width:100%;border-radius:8px;box-shadow:0 4px 12px rgba(2,6,23,0.08);" />
                 <!-- fallback inline placeholder shown when the PNG is not present -->
-                <svg class="wireframe-placeholder" width="360" height="220" viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="border-radius:8p
-                x;display:none;">
+                <svg class="wireframe-placeholder" width="360" height="220" viewBox="0 0 360 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="border-radius:8px;display:block;">
                     <rect width="360" height="220" rx="8" fill="#ffffff" stroke="#e6eef6" />
                     <rect x="16" y="16" width="120" height="24" rx="4" fill="#f3f4f6" />
                     <rect x="16" y="52" width="328" height="140" rx="6" fill="#fbfdff" stroke="#eef2f7" />
@@ -34,32 +32,34 @@
                 </div>
             <!-- Inline, non-blocking indicator shown next to the load button -->
             <div style="display:flex;align-items:center;justify-content:center;margin-top:8px;gap:8px;">
-                                <div id="inlineIndicator" class="inline-indicator hidden" role="status" aria-live="polite" aria-hidden="true">
-                                        <!-- decorative jerrycan SVG; fill is updated via JS (height + y) -->
-                                        <svg id="jerrySvg" class="jerry-svg" width="36" height="44" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                                            <!-- body outline -->
-                                            <rect x="2" y="6" width="32" height="30" rx="4" fill="none" stroke="#2b3742" stroke-width="1" />
-                                            <!-- neck/handle -->
-                                            <rect x="24" y="2" width="8" height="8" rx="2" fill="#ffffff" stroke="#2b3742" stroke-width="1" />
-                                            <!-- water rect (we update height and y via JS). initial height=0 -->
-                                            <rect id="jerryWater" x="3" y="36" width="30" height="0" fill="#2ea7f7" />
-                                        </svg>
-                                        <span class="inline-spinner" aria-hidden="true"></span>
-                                        <span id="inlineIndicatorText" class="inline-text">Loading...</span>
-                                        <span id="inlineIndicatorPct" class="inline-pct">0%</span>
-                                </div>
+                <div id="inlineIndicator" class="inline-indicator hidden" role="status" aria-live="polite" aria-hidden="true" style="display:flex;align-items:flex-end;gap:8px;">
+                    <!-- decorative jerrycan SVG; fill is updated via JS (height + y) -->
+                    <svg id="jerrySvg" class="jerry-svg" width="36" height="44" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                        <!-- body outline -->
+                        <rect x="2" y="6" width="32" height="30" rx="4" fill="none" stroke="#2b3742" stroke-width="1" />
+                        <!-- neck/handle -->
+                        <rect x="24" y="2" width="8" height="8" rx="2" fill="#ffffff" stroke="#2b3742" stroke-width="1" />
+                        <!-- water rect (we update height and y via JS). initial height=0 -->
+                        <rect id="jerryWater" x="3" y="36" width="30" height="0" fill="#2ea7f7" />
+                    </svg>
+                    <!-- small credit inside/below the jerrycan area -->
+                    <a class="jerrycan-credit" href="https://www.charitywater.org/" target="_blank" rel="noopener noreferrer">Brought to You By charity:water</a>
+                    <span class="inline-spinner" aria-hidden="true"></span>
+                    <span id="inlineIndicatorText" class="inline-text">Loading...</span>
+                    <span id="inlineIndicatorPct" class="inline-pct">0%</span>
+                </div>
             </div>
-            <!-- The Figma wireframe link has been moved into the sponsor bar below so the sponsorship area is the primary visible item -->
             <p class="small">This prototype uses simple HTML/CSS/JS so students can learn DOM programming.</p>
 
-            <!-- Sponsorship bar: moved inside the intro card so it's always visible; sponsor name links to charity:water -->
-            <div class="sponsor-bar" aria-hidden="false">
-                <div class="sponsor-inner">
-                    Sponsored by
-                    <a class="sponsor-link" href="https://www.charitywater.org/" target="_blank" rel="noopener noreferrer">charity:water</a>
-                    <span class="sponsor-sep" aria-hidden="true">|</span>
-                    <a class="figma-link" href="https://www.figma.com/proto/dcjWRW8CHaVQE1QV38d0yE/Adam-s-Ale?node-id=0-1&t=o031IUey9KEXQKv1-1" target="_blank" rel="noopener noreferrer">Open Figma Wireframe</a>
-                </div>
+            <!-- Jerrycan badge with credit overlay (visible) -->
+            <div class="jerrycan-badge" style="margin:10px auto 6px;">
+                <img src="img/water-can.png" alt="charity water jerrycan" class="jerrycan-badge-img" onerror="this.style.display='none'" />
+                <a class="jerrycan-badge-caption" href="https://www.charitywater.org/" target="_blank" rel="noopener noreferrer">Brought to You By charity:water</a>
+            </div>
+
+            <!-- Restore original Figma button below the preview -->
+            <div style="margin-top:8px;">
+                <a class="btn" href="https://www.figma.com/proto/dcjWRW8CHaVQE1QV38d0yE/Adam-s-Ale?node-id=0-1&t=o031IUey9KEXQKv1-1" target="_blank" rel="noopener noreferrer">Open Figma Wireframe</a>
             </div>
         </div>
     </div>

@@ -17,8 +17,9 @@
             <p class="lead">Welcome, traveller! Embark on a quest: place gear, gather supplies, and bring them to the hamlet.</p>
             <!-- Replace the intro wireframe with a clickable jerrycan that links to charity:water -->
             <div class="wireframe-preview" style="margin:12px 0;">
-                <a class="jerrycan-link" href="https://www.charitywater.org/" target="_blank" rel="noopener noreferrer" title="Brought to You By charity:water">
+                <a class="jerrycan-link" href="https://www.charitywater.org/" target="_blank" rel="noopener noreferrer" aria-label="Brought to You By charity:water (opens in new tab)">
                     <img src="img/water-can.png" alt="charity:water jerrycan" class="big-jerry" onerror="this.style.display='none'" />
+                    <span class="jerrycan-tooltip" aria-hidden="true">Brought to You By charity:water</span>
                 </a>
                 <!-- fallback placeholder shown when the PNG is not present -->
                 <svg class="wireframe-placeholder" width="220" height="220" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="border-radius:8px;display:block;">

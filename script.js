@@ -19,6 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
     missionActive: false,
     missionTimeLeft: 0,
     achievements: [],
+    // new fields: difficulty and active challenge info
+    difficulty: 'normal',
+    activeChallenge: null,
+    challengeProgress: {},
   };
 
   // Attempt to load saved state from localStorage
@@ -30,6 +34,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch (e) {
     console.warn('Failed to load saved state', e);
+  }
+
+  // Helper to place a specific item on a tile index (used by click and drop)
+  function placeItemOnTile(index, item, tileEl) {
+    if (!item) return;
+    const tile = tileEl || worldInner && worldInner.querySelector(`.map-tile[data-index="${index}"]`);
+    const existing = state.placedItems.find(p => p.index === index);
+    if (existing) {
+      const refund = Math.ceil(existing.item.cost / 2);
+      state.funds += refund;
+      state.placedItems = state.placedItems.filter(p => p.index !== index);
+      if (tile) { tile.classList.remove('placed'); tile.querySelector('.tile-item').textContent = ''; }
+      updateInventory(); updateHUD(); saveState();
+      statusTextEl.textContent = `Removed ${existing.item.name} from this plot. Refunded $${refund}.`;
+      try { sound.play('place'); } catch (e) {}
+      return;
+    }
+
+    if (state.funds < item.cost) {
+      statusTextEl.textContent = "You don't have enough funds for that item.";
+      return;
+    }
+
+    state.funds -= item.cost;
+    state.placedItems.push({ index, item: item });
+    if (tile) { tile.classList.add('placed'); tile.querySelector('.tile-item').textContent = item.name; }
+    updateInventory(); updateHUD(); saveState();
+    statusTextEl.textContent = `${item.name} placed on Plot ${index + 1}. Click again to remove (partial refund).`;
+    try { sound.play('place'); } catch (e) {}
+    // challenge progress: placing counts as progress for certain challenges
+    updateChallengeProgress('place', 1, { itemId: item.id });
   }
 
   // Simple UI caches used in screen2
@@ -138,6 +173,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // --- New: Challenges and Achievements data (small, beginner-friendly)
+  const CHALLENGES = [
+    { id: 'c_deliver10', title: 'Deliver 10 Supplies', desc: 'Deliver 10 supplies via Deliver action.', type: 'deliver', target: 10, rewardGold: 40 },
+    { id: 'c_place3', title: 'Place 3 Items', desc: 'Place 3 items on the map (any).', type: 'place', target: 3, rewardGold: 25 },
+  ];
+
+  // Achievement mapping for display
+  const ACHIEVEMENT_DEFS = {
+    '100S': { name: '100 Supplies', desc: 'Delivered 100 supplies in total.' },
+    'PLACED1': { name: 'First Placement', desc: 'Placed your first item on the map.' },
+  };
+
   function animateJerryTo(targetPct, durationMs = 180) {
     if (!jerryWater) return;
     if (_jerryRaf) cancelAnimationFrame(_jerryRaf);
@@ -220,6 +267,14 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       console.warn('Failed to save state', e);
     }
+  }
+
+  // Utility: get difficulty multiplier (used for rewards and water yields)
+  function difficultyMultiplier() {
+    if (!state.difficulty) return 1.0;
+    if (state.difficulty === 'easy') return 1.2;
+    if (state.difficulty === 'hard') return 0.8;
+    return 1.0;
   }
 
   // --------------------------
@@ -541,6 +596,8 @@ document.addEventListener('DOMContentLoaded', () => {
     shopItems.forEach(item => {
       const itemEl = document.createElement('div');
       itemEl.className = 'shop-item';
+      itemEl.setAttribute('draggable', 'true');
+      itemEl.dataset.itemId = item.id;
       itemEl.innerHTML = `
         <div class="meta">
           <strong>${item.name}</strong><div style="font-size:0.85rem;color:#6b7280;">$${item.cost}</div>
@@ -554,6 +611,10 @@ document.addEventListener('DOMContentLoaded', () => {
     statusTextEl.textContent = `Selected: ${item.name}. Click a map tile to place it.`;
         Array.from(shopListEl.querySelectorAll('.shop-item')).forEach(el => el.style.boxShadow = '');
         itemEl.style.boxShadow = '0 0 0 2px rgba(14,165,164,0.14)';
+      });
+      // drag support: set the dataTransfer payload to the item id
+      itemEl.addEventListener('dragstart', (ev) => {
+        try { ev.dataTransfer.setData('text/plain', item.id); ev.dataTransfer.effectAllowed = 'copy'; } catch (e) {}
       });
       itemEl.appendChild(buyBtn);
       shopListEl.appendChild(itemEl);
@@ -584,6 +645,19 @@ document.addEventListener('DOMContentLoaded', () => {
       tile.style.height = `${TILE_H - 24}px`;
       tile.innerHTML = `<div class="tile-label">Plot ${i + 1}</div><div class="tile-item"></div>`;
       tile.addEventListener('click', () => onMapTileClick(i, tile));
+      // drag & drop support so players can drag items from the shop onto a tile
+      tile.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer && (e.dataTransfer.dropEffect = 'copy'); tile.classList.add('drop-target'); });
+      tile.addEventListener('dragleave', (e) => { tile.classList.remove('drop-target'); });
+      tile.addEventListener('drop', (e) => {
+        e.preventDefault(); tile.classList.remove('drop-target');
+        let itemId = null;
+        try { itemId = e.dataTransfer.getData('text/plain'); } catch (err) {}
+        if (!itemId) return;
+        const dragged = shopItems.find(s => s.id === itemId);
+        if (!dragged) return;
+        // place the dragged item directly onto this tile (acts like selecting + clicking)
+        placeItemOnTile(i, dragged, tile);
+      });
       const placed = state.placedItems.find(p => p.index === i);
       if (placed) {
         tile.classList.add('placed');
@@ -941,40 +1015,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function onMapTileClick(index, tileEl) {
+    // Click placement uses the currently selected tool
     if (!state.selectedTool) {
-      statusTextEl.textContent = 'Please select a tool from the shop first.';
+      statusTextEl.textContent = 'Please select a tool from the shop first (or drag one onto the tile).';
       return;
     }
-
-    const existing = state.placedItems.find(p => p.index === index);
-    if (existing) {
-      const refund = Math.ceil(existing.item.cost / 2);
-      state.funds += refund;
-      state.placedItems = state.placedItems.filter(p => p.index !== index);
-      tileEl.classList.remove('placed');
-      tileEl.querySelector('.tile-item').textContent = '';
-      updateInventory();
-      updateHUD();
-      saveState();
-  statusTextEl.textContent = `Removed ${existing.item.name} from this plot. Refunded $${refund}.`;
-      try { sound.play('place'); } catch (e) {}
-      return;
-    }
-
-    if (state.funds < state.selectedTool.cost) {
-      statusTextEl.textContent = "You don't have enough funds for that item.";
-      return;
-    }
-
-    state.funds -= state.selectedTool.cost;
-    state.placedItems.push({ index, item: state.selectedTool });
-    tileEl.classList.add('placed');
-    tileEl.querySelector('.tile-item').textContent = state.selectedTool.name;
-    updateInventory();
-    updateHUD();
-    saveState();
-  statusTextEl.textContent = `${state.selectedTool.name} placed on Plot ${index + 1}. Click again to remove (partial refund).`;
-  try { sound.play('place'); } catch (e) {}
+    placeItemOnTile(index, state.selectedTool, tileEl);
   }
 
   // Deliver water logic
@@ -989,8 +1035,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // If quest accepted and available, complete it
         if (state.questAvailable && state.questAccepted) {
-          const questWater = 20;
-          const questGold = 50;
+          const baseQuestWater = 20;
+          const baseQuestGold = 50;
+          const mult = difficultyMultiplier();
+          const questWater = Math.max(1, Math.round(baseQuestWater * mult));
+          const questGold = Math.max(1, Math.round(baseQuestGold * mult));
           state.waterDelivered += questWater;
           state.funds += questGold;
           state.questAvailable = false;
@@ -998,8 +1047,9 @@ document.addEventListener('DOMContentLoaded', () => {
           updateHUD();
           saveState();
           renderNpc();
-          statusTextEl.textContent = `Quest complete! You delivered ${questWater} aid and earned ${questGold} gold.`;
+          statusTextEl.textContent = `Quest complete! You delivered ${questWater} aid and earned ${questGold} gold (${state.difficulty}).`;
           checkAchievements();
+          updateChallengeProgress('deliver', questWater);
           try { sound.play('questComplete'); } catch (e) {}
           return;
         }
@@ -1011,24 +1061,36 @@ document.addEventListener('DOMContentLoaded', () => {
         gained += (p.item.effect && p.item.effect.water) || 0;
       });
       if (gained === 0) gained = 2;
-      state.waterDelivered += gained;
-      const reward = Math.floor(gained / 2);
+      // apply difficulty multiplier to yields and rewards
+      const mult = difficultyMultiplier();
+      const gainedAdj = Math.max(1, Math.round(gained * mult));
+      state.waterDelivered += gainedAdj;
+      const reward = Math.floor((gainedAdj / 2) * mult);
       state.funds += reward;
       updateHUD();
       saveState();
-      statusTextEl.textContent = `Delivered ${gained} supplies to the hamlet. Earned ${reward} gold.`;
+      statusTextEl.textContent = `Delivered ${gainedAdj} supplies to the hamlet. Earned ${reward} gold (${state.difficulty} mode).`;
       checkAchievements();
+      // update challenge progress for deliver-type challenges
+      updateChallengeProgress('deliver', gainedAdj);
       try { sound.play('deliver'); } catch (e) {}
     });
   }
 
   // Achievements (simple examples)
   function checkAchievements() {
+    let unlocked = false;
     if (state.waterDelivered >= 100 && !state.achievements.includes('100S')) {
       state.achievements.push('100S');
-      alert('Achievement unlocked: 100 supplies delivered!');
+      unlocked = true;
+      try { alert('Achievement unlocked: 100 supplies delivered!'); } catch (e) {}
+    }
+    // small placement achievement
+    if (state.placedItems && state.placedItems.length >= 1 && !state.achievements.includes('PLACED1')) {
+      state.achievements.push('PLACED1'); unlocked = true;
     }
     saveState();
+    if (unlocked) renderAchievements();
   }
 
   // Screen transitions
@@ -1270,6 +1332,92 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Help:\n1) Select an item from the shop.\n2) Click a plot on the map to place it.\n3) Press Deliver Supplies to deliver resources and earn money.');
     });
   }
+  // --- New UI: Difficulty select, Achievements, and Challenges wiring
+  const difficultySelect = document.getElementById('difficultySelect');
+  const achievementsBtn = document.getElementById('achievementsBtn');
+  const achievementsDialog = document.getElementById('achievementsDialog');
+  const achievementsListEl = document.getElementById('achievementsList');
+  const closeAchievementsBtn = document.getElementById('closeAchievementsBtn');
+  const clearAchievementsBtn = document.getElementById('clearAchievementsBtn');
+  const challengesListEl = document.getElementById('challengesList');
+
+  function renderChallenges() {
+    if (!challengesListEl) return;
+    challengesListEl.innerHTML = '';
+    CHALLENGES.forEach(ch => {
+      const div = document.createElement('div');
+      div.className = 'challenge';
+      const progress = state.challengeProgress[ch.id] || 0;
+      const isActive = state.activeChallenge && state.activeChallenge.id === ch.id;
+      div.innerHTML = `<div class="meta"><strong>${ch.title}</strong><div style="font-size:0.85rem;color:#6b7280;">${ch.desc}</div></div>`;
+      const right = document.createElement('div');
+      if (isActive) {
+        right.innerHTML = `<div style="font-size:0.9rem;color:#0f5132;">${progress}/${ch.target}</div>`;
+        const btn = document.createElement('button'); btn.className='btn'; btn.textContent='Abandon'; btn.addEventListener('click', ()=>{ state.activeChallenge = null; saveState(); renderChallenges(); statusTextEl.textContent='Challenge abandoned.'; });
+        right.appendChild(btn);
+      } else {
+        const btn = document.createElement('button'); btn.className='btn primary accept'; btn.textContent='Accept'; btn.addEventListener('click', ()=>{ state.activeChallenge = ch; state.challengeProgress[ch.id]=0; saveState(); renderChallenges(); statusTextEl.textContent=`Challenge accepted: ${ch.title}`; });
+        right.appendChild(btn);
+      }
+      div.appendChild(right);
+      challengesListEl.appendChild(div);
+    });
+  }
+
+  function updateChallengeProgress(type, amount = 1, meta = {}) {
+    if (!state.activeChallenge) return;
+    const ch = state.activeChallenge;
+    if (ch.type !== type) return;
+    const cur = state.challengeProgress[ch.id] || 0;
+    const next = cur + amount;
+    state.challengeProgress[ch.id] = next;
+    if (next >= ch.target) {
+      // complete challenge
+      state.activeChallenge = null;
+      state.funds += ch.rewardGold || 10;
+      statusTextEl.textContent = `Challenge complete: ${ch.title}. Reward: $${ch.rewardGold || 10}`;
+      saveState();
+      renderChallenges();
+      checkAchievements();
+      try { sound.play('questComplete'); } catch (e) {}
+      return;
+    }
+    saveState();
+    renderChallenges();
+  }
+
+  function renderAchievements() {
+    if (!achievementsListEl) return;
+    achievementsListEl.innerHTML = '';
+    if (!state.achievements || state.achievements.length === 0) {
+      achievementsListEl.innerHTML = '<div class="small">No achievements yet. Keep playing!</div>';
+      return;
+    }
+    state.achievements.forEach(code => {
+      const def = ACHIEVEMENT_DEFS[code] || { name: code, desc: '' };
+      const el = document.createElement('div'); el.className = 'achievement';
+      el.innerHTML = `<div><strong>${def.name}</strong><div style="font-size:0.85rem;color:#6b7280;">${def.desc}</div></div><div style="font-weight:700;color:#0f5132;">Unlocked</div>`;
+      achievementsListEl.appendChild(el);
+    });
+  }
+
+  if (difficultySelect) {
+    difficultySelect.value = state.difficulty || 'normal';
+    difficultySelect.addEventListener('change', (e) => { state.difficulty = e.target.value || 'normal'; saveState(); statusTextEl.textContent = `Difficulty set to ${state.difficulty}`; });
+  }
+  if (achievementsBtn) {
+    achievementsBtn.addEventListener('click', () => { renderAchievements(); achievementsDialog && achievementsDialog.classList.remove('hidden'); if (achievementsDialog) achievementsDialog.setAttribute('aria-hidden','false'); });
+  }
+  if (closeAchievementsBtn) {
+    closeAchievementsBtn.addEventListener('click', () => { if (achievementsDialog) { achievementsDialog.classList.add('hidden'); achievementsDialog.setAttribute('aria-hidden','true'); } });
+  }
+  if (clearAchievementsBtn) {
+    clearAchievementsBtn.addEventListener('click', () => { state.achievements = []; saveState(); renderAchievements(); statusTextEl.textContent = 'Achievements cleared.'; });
+  }
+
+  // initial render of challenges and achievements UI
+  renderChallenges();
+  renderAchievements();
   // helpBtn handler attached
 
   // If the user previously had screen2 open (persisted), show it directly

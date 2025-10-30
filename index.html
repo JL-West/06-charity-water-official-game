@@ -97,6 +97,16 @@
                     <button id="enableSoundBtn" class="btn medieval-btn" title="Enable audio for synth SFX and music">Harken!</button>
                     <button id="musicToggleBtn" class="btn medieval-btn" title="Play / Pause background music">Let Music Play</button>
                     <div id="nowPlaying" class="now-playing" aria-live="polite" style="display:none;"></div>
+                    <!-- Difficulty selector and Achievements -->
+                    <label for="difficultySelect" style="margin-left:10px;font-size:0.85rem;color:#ffffff;display:inline-flex;align-items:center;gap:6px;">
+                        <span style="font-size:0.75rem;color:rgba(255,255,255,0.9);">Difficulty</span>
+                        <select id="difficultySelect" style="padding:6px;border-radius:6px;border:1px solid rgba(0,0,0,0.08);background:#fff;color:#0f172a;">
+                            <option value="easy">Easy</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </label>
+                    <button id="achievementsBtn" class="btn" title="View achievements">🏆</button>
                 </div>
             </div>
         </header>
@@ -146,6 +156,13 @@
                         <li>No items placed yet.</li>
                     </ul>
                 </section>
+                <!-- Challenges panel: small list of short tasks players can accept -->
+                <section class="challenges card" style="margin-top:12px;">
+                    <h3>Challenges</h3>
+                    <div id="challengesList" style="display:flex;flex-direction:column;gap:8px;">
+                        <!-- JS will render daily/rotating challenges here -->
+                    </div>
+                </section>
                 <!-- Move Help button here so header isn't crowded -->
                 <div style="margin-top:12px; text-align:center;">
                     <button id="helpBtn" class="btn">Help</button>
@@ -182,6 +199,21 @@
                     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
                         <button id="resetCancelBtn" class="btn">Cancel</button>
                         <button id="resetConfirmBtn" class="btn primary">Confirm</button>
+                    </div>
+                </div>
+
+                <!-- Achievements dialog -->
+                <div id="achievementsDialog" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="achievementsTitle">
+                    <div class="modal-backdrop"></div>
+                    <div class="modal-content">
+                        <h3 id="achievementsTitle">Achievements</h3>
+                        <div id="achievementsList" style="max-height:320px;overflow:auto;margin-top:8px;">
+                            <!-- Achievements rendered by JS -->
+                        </div>
+                        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+                            <button id="clearAchievementsBtn" class="btn">Clear</button>
+                            <button id="closeAchievementsBtn" class="btn primary">Close</button>
+                        </div>
                     </div>
                 </div>
             </div>

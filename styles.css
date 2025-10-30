@@ -315,6 +315,23 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 .shop-item .meta { font-size: 0.9rem; color: #374151; }
 .shop-item button { margin-left: 10px; }
 
+/* Make shop items draggable and show a grab cursor */
+.shop-item[draggable="true"] { cursor: grab; }
+.shop-item[draggable="true"]:active { cursor: grabbing; }
+
+/* Map tile drop highlight */
+.map-tile.drop-target { box-shadow: 0 0 0 4px rgba(46,157,247,0.18); transform: translateY(-6px); }
+
+/* Challenges list styles */
+.challenges .challenge { display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px;border:1px solid #eef2f7;background:#fff; }
+.challenges .challenge .meta { font-size:0.9rem;color:#0f172a; }
+.challenges .challenge .accept { margin-left:8px; }
+
+/* Achievements list */
+#achievementsList { display:flex;flex-direction:column;gap:8px;margin-top:6px; }
+.achievement { padding:8px;border-radius:8px;background:linear-gradient(180deg,#fffaf0,#fff8e6);border:1px solid rgba(255,201,7,0.12); display:flex;justify-content:space-between;align-items:center; }
+.achievement.locked { opacity:0.6; filter:grayscale(0.3); }
+
 /* Inventory */
 .inventory ul { list-style: disc; padding-left: 18px; margin-top: 8px; }
 

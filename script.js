@@ -190,25 +190,65 @@ document.addEventListener('DOMContentLoaded', () => {
     'PLACED1': { name: 'First Placement', desc: 'Placed your first item on the map.' },
   };
 
-  // Choose a small rotating subset of challenges each day (deterministic per-day seed)
-  function seedDailyChallenges() {
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    // If already seeded for today, keep it
-    if (state.dailyChallengeDate === today && Array.isArray(state.dailyChallenges) && state.dailyChallenges.length) return;
-    // Simple deterministic PRNG seeded by date
-    let seed = 0;
-    for (let i = 0; i < today.length; i++) seed = (seed * 31 + today.charCodeAt(i)) >>> 0;
-    function rand() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
+  // Choose a small rotating subset of challenges per session (random each page load)
+  function seedSessionChallenges() {
+    // If already seeded this session, keep it
+    if (Array.isArray(state.sessionChallenges) && state.sessionChallenges.length) return;
     const pool = CHALLENGE_POOL.slice();
     const pickCount = Math.min(3, pool.length);
     const chosen = [];
     for (let i = 0; i < pickCount; i++) {
-      const idx = Math.floor(rand() * pool.length);
+      const idx = Math.floor(Math.random() * pool.length);
       chosen.push(pool.splice(idx, 1)[0]);
     }
-    state.dailyChallenges = chosen;
-    state.dailyChallengeDate = today;
-    saveState();
+    // sessionChallenges are not persisted so they'll rotate each page load
+    state.sessionChallenges = chosen;
+  }
+
+  // Enemy system: basic session-only enemy placement that can steal funds or placed items
+  const ENEMY_TYPES = [
+    { id: 'thief', name: 'Thief' },
+    { id: 'raider', name: 'Raider' }
+  ];
+
+  function spawnEnemiesForSession() {
+    // ensure we only spawn once per session unless map re-renders and we want to respawn
+    if (Array.isArray(state.enemyTiles) && state.enemyTiles.length) return;
+    state.enemyTiles = [];
+    let count = 0;
+    if (state.difficulty === 'easy') count = 0;
+    else if (state.difficulty === 'normal') count = 2;
+    else if (state.difficulty === 'hard') count = 4;
+    const forbidden = new Set([state.playerPosIndex, state.questNpcIndex]);
+    const available = [];
+    for (let i = 0; i < totalTiles; i++) if (!forbidden.has(i)) available.push(i);
+    for (let i = 0; i < count && available.length; i++) {
+      const idx = Math.floor(Math.random() * available.length);
+      state.enemyTiles.push(available.splice(idx, 1)[0]);
+    }
+  }
+
+  function handleEncounter(index) {
+    if (!state.enemyTiles || !state.enemyTiles.includes(index)) return;
+    // remove enemy after encounter
+    state.enemyTiles = state.enemyTiles.filter(i => i !== index);
+    // if there's a placed item here, it's stolen
+    const placed = state.placedItems.find(p => p.index === index);
+    if (placed) {
+      // remove item without refund to simulate theft
+      state.placedItems = state.placedItems.filter(p => p.index !== index);
+      statusTextEl.textContent = `A bandit stole the ${placed.item.name} from Plot ${index + 1}!`; 
+      try { sound.play('place'); } catch (e) {}
+      saveState(); renderMap(); updateInventory(); updateHUD();
+      return;
+    }
+    // otherwise steal some funds
+    const mult = state.difficulty === 'hard' ? 0.2 : 0.1;
+    const lost = Math.max(1, Math.round(state.funds * mult));
+    state.funds = Math.max(0, state.funds - lost);
+    statusTextEl.textContent = `Robbers relieved you of $${lost}! Stay vigilant.`;
+    try { sound.play('place'); } catch (e) {}
+    saveState(); updateHUD();
   }
 
   function animateJerryTo(targetPct, durationMs = 180) {
@@ -1368,6 +1408,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeAchievementsBtn = document.getElementById('closeAchievementsBtn');
   const clearAchievementsBtn = document.getElementById('clearAchievementsBtn');
   const challengesListEl = document.getElementById('challengesList');
+  const toggleFPBtn = document.getElementById('toggleFPBtn');
+  const fpView = document.getElementById('fpView');
 
   // shared opener for achievements dialog (defensive event stops included)
   function openAchievements(ev) {
@@ -1452,6 +1494,29 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   if (achievementsBtn) {
     achievementsBtn.addEventListener('click', openAchievements);
+  }
+
+  // First-person toggle: show a simple FP panel while keeping the map visible
+  state.firstPerson = !!state.firstPerson;
+  function renderFirstPerson() {
+    if (!fpView) return;
+    if (!state.firstPerson) { fpView.classList.add('hidden'); fpView.setAttribute('aria-hidden','true'); return; }
+    fpView.classList.remove('hidden'); fpView.setAttribute('aria-hidden','false');
+    const idx = state.playerPosIndex;
+    const questIdx = state.questNpcIndex;
+    const dx = (questIdx % MAP_COLS) - (idx % MAP_COLS);
+    const dy = Math.floor(questIdx / MAP_COLS) - Math.floor(idx / MAP_COLS);
+    const dir = dx === 0 && dy === 0 ? 'here' : `${Math.abs(dx)} right/left ${Math.abs(dy)} down/up`;
+    const txt = `You are at Plot ${idx + 1}. The quest is at Plot ${questIdx + 1} (${dir}).`;
+    const el = document.getElementById('fpText'); if (el) el.textContent = txt;
+    // also highlight the quest tile visually in the map
+    try { renderMap(); } catch (e) {}
+  }
+  if (toggleFPBtn) {
+    toggleFPBtn.addEventListener('click', (ev) => {
+      try { ev && ev.preventDefault && ev.preventDefault(); } catch (e) {}
+      state.firstPerson = !state.firstPerson; renderFirstPerson();
+    });
   }
   
 

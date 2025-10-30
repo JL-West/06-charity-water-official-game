@@ -162,6 +162,29 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 	border-radius: 10px;
 }
 
+/* Make room for an absolutely positioned sponsorship bar inside the intro screen */
+#screen-1 { position: relative; padding-bottom: 64px; }
+
+.sponsor-bar {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0,0,0,0.72); /* black translucent background */
+	color: var(--brand-blue); /* charity:water blue */
+	padding: 10px 12px;
+	font-family: Georgia, 'Times New Roman', serif;
+	font-weight: 700; /* bold */
+	font-style: italic; /* italic */
+	font-size: 0.95rem;
+	text-align: center;
+	z-index: 30;
+}
+.sponsor-bar .sponsor-name { margin-left: 6px; }
+
 /* Center content in main screen with an overlay panel effect */
 #screen-1 .intro-card { background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.82)); box-shadow: 0 8px 30px rgba(2,6,23,0.18); }
 

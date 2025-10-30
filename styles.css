@@ -187,7 +187,8 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 8px;
+	gap: 12px;
+	flex-wrap: wrap; /* allow links to wrap on narrow screens */
 }
 
 .sponsor-bar .sponsor-name { margin-left: 6px; }
@@ -210,11 +211,18 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 	color: rgba(255,255,255,0.92);
 	background: transparent;
 	text-decoration: none;
-	font-size: 0.86rem;
+	font-size: 0.92rem;
 	padding-left: 8px;
 }
 .sponsor-inner .figma-link:hover { text-decoration: underline; opacity: 0.98; }
 .sponsor-inner .sponsor-sep { color: rgba(255,255,255,0.62); margin: 0 6px; }
+
+/* Ensure charity link is high contrast on the dark bar */
+.sponsor-bar .sponsor-link { color: #ffffff; font-weight: 700; }
+.sponsor-bar .sponsor-link:hover { color: #e6f5ff; }
+
+/* Increase padding so the bar isn't too narrow visually */
+.sponsor-bar { padding: 12px 16px; }
 
 /* Center content in main screen with an overlay panel effect */
 #screen-1 .intro-card { background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.82)); box-shadow: 0 8px 30px rgba(2,6,23,0.18); }

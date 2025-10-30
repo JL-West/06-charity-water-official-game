@@ -185,6 +185,10 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 }
 .sponsor-bar .sponsor-name { margin-left: 6px; }
 
+/* Sponsorship link styling: keep the charity:water blue, remove underline, subtle hover */
+.sponsor-bar .sponsor-link { color: inherit; text-decoration: none; display:inline-flex; align-items:center; }
+.sponsor-bar .sponsor-link:hover { opacity: 0.92; text-decoration: underline; }
+
 /* Center content in main screen with an overlay panel effect */
 #screen-1 .intro-card { background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.82)); box-shadow: 0 8px 30px rgba(2,6,23,0.18); }
 

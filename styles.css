@@ -160,6 +160,17 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 .npc-entity .npc-indicator { position: absolute; right: -8px; top: -8px; background: #fde68a; border-radius: 999px; padding: 2px 6px; font-size:12px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
 .npc-entity.quest-complete { opacity: 0.7; filter: grayscale(0.2); }
 
+/* NPC avatar and tooltip */
+.npc-entity { pointer-events: auto; cursor: pointer; overflow: visible; }
+.npc-entity .npc-avatar { width: 36px; height: 36px; border-radius: 8px; display:flex; align-items:center; justify-content:center; font-size:18px; background: linear-gradient(180deg,#fff,#f7f7f7); box-shadow: 0 6px 12px rgba(6,10,18,0.06); }
+.npc-entity .npc-tooltip { position: absolute; left: 100%; top: 50%; transform: translate(10px, -50%); background: rgba(6,10,18,0.9); color: #fff; padding:6px 8px; border-radius:6px; font-size:0.85rem; white-space:nowrap; display:none; z-index:30; }
+.npc-entity:hover .npc-tooltip, .npc-entity:focus .npc-tooltip { display:block; }
+
+/* subtle bob animation to make NPCs feel alive */
+.npc-entity { transition: transform 160ms ease; }
+.npc-entity.bob { animation: bob 2.6s ease-in-out infinite; }
+@keyframes bob { 0% { transform: translateY(0); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0); } }
+
 /* stepping visual for player when moving */
 .player-entity.stepping { transform: scale(1.08); }
 

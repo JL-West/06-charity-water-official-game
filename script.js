@@ -155,21 +155,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Migrate to multi-NPC support: maintain backward compatibility with older saved state
-  if (!Array.isArray(state.npcs) || state.npcs.length === 0) {
+    if (!Array.isArray(state.npcs) || state.npcs.length === 0) {
     state.npcs = [];
+    const avatarPool = ['👵','👨‍🌾','👩‍🌾','🧑‍🌾','👩','👨','🧑','🧓'];
+    // helper to build a simple quest object
+    function makeQuest(type) {
+      if (type === 'place') return { type: 'place', target: 3, rewardCrowns: 20, desc: 'Place 3 items on nearby plots.' };
+      // default deliver
+      return { type: 'deliver', target: 12, rewardCrowns: 45, rewardWater: 12, desc: 'Deliver aid to the villager.' };
+    }
+
     if (typeof state.questNpcIndex !== 'undefined' && state.questNpcIndex !== null) {
-      // migrate old single NPC into the new structure
-      state.npcs.push({ id: 'npc-1', index: state.questNpcIndex, available: !!state.questAvailable, accepted: !!state.questAccepted, name: 'Villager' });
+      // migrate old single NPC into the new structure with a default quest
+      state.npcs.push({ id: 'npc-1', index: state.questNpcIndex, available: !!state.questAvailable, accepted: !!state.questAccepted, name: 'Villager', avatar: '👵', quest: makeQuest('deliver') });
     } else {
-      // seed a few NPCs at random positions (avoid player's tile)
-      const names = ['Marta','Gareth','Hilde','Roland','Alda'];
+      // seed a few NPCs at random positions (avoid player's tile) and give each a small quest
+      const names = ['Marta','Gareth','Hilde','Roland','Alda','Beric','Lisbet'];
       const availablePos = [];
       for (let i = 0; i < totalTiles; i++) if (i !== state.playerPosIndex) availablePos.push(i);
-      const npcCount = Math.min(3, Math.max(1, Math.floor(availablePos.length / 6)));
+      const npcCount = Math.min(4, Math.max(1, Math.floor(availablePos.length / 6)));
       for (let i = 0; i < npcCount; i++) {
         const idx = Math.floor(Math.random() * availablePos.length);
         const pos = availablePos.splice(idx, 1)[0];
-        state.npcs.push({ id: `npc-${i+1}`, index: pos, available: true, accepted: false, name: names[i % names.length] });
+        const name = names[i % names.length];
+        const avatar = avatarPool[i % avatarPool.length];
+        const qtype = (i % 2 === 0) ? 'deliver' : 'place';
+        state.npcs.push({ id: `npc-${i+1}`, index: pos, available: true, accepted: false, name: name, avatar: avatar, quest: makeQuest(qtype) });
       }
     }
   }
@@ -823,22 +834,39 @@ document.addEventListener('DOMContentLoaded', () => {
         el.className = 'npc-entity';
         el.setAttribute('aria-hidden', 'true');
         el.setAttribute('data-npc-id', npcObj.id);
+        // avatar (emoji) shown in circle
+        const avatar = document.createElement('div');
+        avatar.className = 'npc-avatar';
+        avatar.textContent = npcObj.avatar || '👤';
+        el.appendChild(avatar);
         const badge = document.createElement('div');
         badge.className = 'npc-indicator';
         el.appendChild(badge);
+        // small tooltip for accessibility and hover
+        const tip = document.createElement('div');
+        tip.className = 'npc-tooltip';
+        tip.textContent = `${npcObj.name} — ${npcObj.quest && npcObj.quest.desc ? npcObj.quest.desc : 'Seeks help'}`;
+        el.appendChild(tip);
         // clicking the NPC opens the dialog for that NPC
-        el.addEventListener('click', () => {
+        el.addEventListener('click', (ev) => {
+          try { ev && ev.stopPropagation && ev.stopPropagation(); } catch (e) {}
           if (npcObj.available) showNpcDialog(npcObj.id);
         });
         worldInner.appendChild(el);
+      } else {
+        // ensure avatar and tooltip reflect any updates
+        const avatar = el.querySelector('.npc-avatar'); if (avatar) avatar.textContent = npcObj.avatar || '👤';
+        const tip = el.querySelector('.npc-tooltip'); if (tip) tip.textContent = `${npcObj.name} — ${npcObj.quest && npcObj.quest.desc ? npcObj.quest.desc : 'Seeks help'}`;
       }
-      const idx = npcObj.index;
+  const idx = npcObj.index;
   const nx = idx % MAP_COLS;
   const ny = Math.floor(idx / MAP_COLS);
       // position element centered on tile
       el.style.left = `${nx * TILE_W + TILE_W / 2 - 18}px`;
       el.style.top = `${ny * TILE_H + TILE_H / 2 - 18}px`;
       const badge = el.querySelector('.npc-indicator');
+      // add a bob class for subtle motion
+      if (!el.classList.contains('bob')) el.classList.add('bob');
       if (npcObj.available) {
         badge.textContent = '❗';
         el.classList.remove('quest-complete');
@@ -872,11 +900,13 @@ document.addEventListener('DOMContentLoaded', () => {
     state.activeNpcId = npcObj.id;
     npcDialog.classList.remove('hidden');
     npcDialog.setAttribute('aria-hidden', 'false');
+    // Compose dialog text using NPC-specific quest info when available
+    const q = npcObj.quest || { type: 'deliver', target: 10, rewardCrowns: 30, desc: 'A local needs aid.' };
     if (npcObj.accepted) {
       npcDialogText.textContent = 'You have already accepted this quest. Return to the villager to hand it in.';
       npcAcceptBtn.textContent = 'Okay';
     } else {
-      npcDialogText.textContent = `${npcObj.name} asks for aid. Accept the quest to receive a reward for returning supplies.`;
+      npcDialogText.textContent = `${npcObj.name} asks: ${q.desc} (${q.type === 'deliver' ? `Deliver ${q.target} aid` : `Place ${q.target} items`}). Reward: ${q.rewardCrowns} crowns.`;
       npcAcceptBtn.textContent = 'Accept Quest';
     }
   }
@@ -1153,26 +1183,25 @@ document.addEventListener('DOMContentLoaded', () => {
           showNpcDialog(npcHere.id);
           return;
         }
-        if (npcHere.available && npcHere.accepted) {
-          const baseQuestWater = 20;
-          const baseQuestGold = 50;
-          const mult = difficultyMultiplier();
-          const questWater = Math.max(1, Math.round(baseQuestWater * mult));
-          const questGold = Math.max(1, Math.round(baseQuestGold * mult));
-          state.waterDelivered += questWater;
-          state.funds += questGold;
-          // mark this NPC's quest complete
-          npcHere.available = false;
-          npcHere.accepted = false;
-          updateHUD();
-          saveState();
-          renderNpc();
-          statusTextEl.textContent = `Quest complete! You delivered ${questWater} aid and earned ${questGold} crowns (${state.difficulty}).`;
-          checkAchievements();
-          updateChallengeProgress('deliver', questWater);
-          try { sound.play('questComplete'); } catch (e) {}
-          return;
-        }
+          if (npcHere.available && npcHere.accepted) {
+            const q = npcHere.quest || { type: 'deliver', target: 20, rewardCrowns: 50, rewardWater: 20 };
+            const mult = difficultyMultiplier();
+            const questWater = Math.max(1, Math.round((q.rewardWater || q.target || 10) * mult));
+            const questCrowns = Math.max(1, Math.round((q.rewardCrowns || 40) * mult));
+            state.waterDelivered += questWater;
+            state.funds += questCrowns;
+            // mark this NPC's quest complete
+            npcHere.available = false;
+            npcHere.accepted = false;
+            updateHUD();
+            saveState();
+            renderNpc();
+            statusTextEl.textContent = `Quest complete! You delivered ${questWater} aid and earned ${questCrowns} crowns (${state.difficulty}).`;
+            checkAchievements();
+            updateChallengeProgress('deliver', questWater);
+            try { sound.play('questComplete'); } catch (e) {}
+            return;
+          }
       }
 
       // Otherwise perform a normal delivery from placed items

@@ -154,7 +154,15 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 /* keep tile inner elements tidy */
 .map-tile .tile-label { font-size: 0.85rem; color: #0f172a; }
 .map-tile .tile-item { font-size: 0.78rem; color: #065f46; margin-top:6px; }
-.map-tile .tile-subtitle { font-size:0.75rem; color:#475569; margin-top:4px; }
+.map-tile .tile-label { font-size: 0.85rem; color: #0f172a; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.map-tile .tile-item { font-size: 0.78rem; color: #065f46; margin-top:6px; }
+
+/* ensure tiles render beneath avatars/enemy markers */
+.map-tile { position: absolute; z-index: 2; }
+.player-entity { z-index: 6; }
+.npc-entity { z-index: 8; }
+.map-tile.enemy { z-index: 4; }
+.enemy-marker { z-index: 7; position: absolute; right: 6px; top: 6px; }
 
 /* NPC entity */
 .npc-entity { position: absolute; width: 36px; height: 36px; border-radius: 10px; display:flex; align-items:center; justify-content:center; font-size:18px; background: linear-gradient(180deg,#1583c4,#fff1e0); box-shadow: 0 8px 18px rgba(12,18,31,0.08); pointer-events: none; }

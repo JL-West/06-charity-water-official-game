@@ -769,8 +769,9 @@ document.addEventListener('DOMContentLoaded', () => {
       tile.style.top = `${y * TILE_H + 12}px`;
       tile.style.width = `${TILE_W - 24}px`;
       tile.style.height = `${TILE_H - 24}px`;
-  const plotName = PLOT_NAMES[i % PLOT_NAMES.length] || `Plot ${i+1}`;
-  tile.innerHTML = `<div class="tile-label">Plot ${i + 1}</div><div class="tile-subtitle">${plotName}</div><div class="tile-item"></div>`;
+  const plotName = PLOT_NAMES[i % PLOT_NAMES.length] || `Field ${i+1}`;
+  // show only the plot name (no 'Plot N' prefix) to avoid overflow when items are placed
+  tile.innerHTML = `<div class="tile-label" title="${plotName}">${plotName}</div><div class="tile-item"></div>`;
       tile.addEventListener('click', () => onMapTileClick(i, tile));
       // drag & drop support so players can drag items from the shop onto a tile
       tile.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer && (e.dataTransfer.dropEffect = 'copy'); tile.classList.add('drop-target'); });
@@ -1584,9 +1585,12 @@ document.addEventListener('DOMContentLoaded', () => {
     state.challengeProgress[ch.id] = next;
     if (next >= ch.target) {
       // complete challenge
+      // award and clear active
       state.activeChallenge = null;
-  state.funds += ch.rewardGold || 10;
-  statusTextEl.textContent = `Challenge complete: ${ch.title}. Reward: ${ch.rewardGold || 10} crowns`;
+      state.funds += ch.rewardGold || 10;
+      statusTextEl.textContent = `Challenge complete: ${ch.title}. Reward: ${ch.rewardGold || 10} crowns`;
+      // rotate this completed challenge out of the session set so players see a new one
+      rotateSessionChallenge(ch.id);
       saveState();
       renderChallenges();
       checkAchievements();
@@ -1595,6 +1599,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     saveState();
     renderChallenges();
+  }
+
+  // Remove a completed challenge from the current session list and replace it
+  function rotateSessionChallenge(completedId) {
+    if (!Array.isArray(state.sessionChallenges) || state.sessionChallenges.length === 0) return;
+    // remove any entries matching the completed id
+    state.sessionChallenges = state.sessionChallenges.filter(c => c.id !== completedId);
+    // choose a replacement from the pool (not already in session)
+    const existing = new Set(state.sessionChallenges.map(c => c.id));
+    const candidates = CHALLENGE_POOL.filter(c => !existing.has(c.id) && c.id !== completedId);
+    if (candidates.length === 0) return; // nothing to add
+    const pick = candidates[Math.floor(Math.random() * candidates.length)];
+    state.sessionChallenges.push(pick);
   }
 
   function renderAchievements() {

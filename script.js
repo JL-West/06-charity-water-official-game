@@ -103,6 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const MAP_ROWS = 4;
   const totalTiles = MAP_COLS * MAP_ROWS;
 
+  // Small list of hamlet/plot names for display (Option 1: light naming)
+  const PLOT_NAMES = [
+    'North Pasture','Old Mill','Bakers\' Row','Riverbank','Hillstead','Greenway',
+    'Stonebridge','East Field','West Orchard','Fisher\'s Cove','Town Square','Lower Farm',
+    'Upper Meadow','Shepherd\'s Hill','The Ditch','Willow End','Crow\'s Hollow','Amber Lea','Long Acre','Market Lane','Quarry','Fox Run','Ironford','Deepwell'
+  ];
+
   // Tile pixel size used for the immersive world
   const TILE_W = 140;
   const TILE_H = 90;
@@ -762,7 +769,8 @@ document.addEventListener('DOMContentLoaded', () => {
       tile.style.top = `${y * TILE_H + 12}px`;
       tile.style.width = `${TILE_W - 24}px`;
       tile.style.height = `${TILE_H - 24}px`;
-      tile.innerHTML = `<div class="tile-label">Plot ${i + 1}</div><div class="tile-item"></div>`;
+  const plotName = PLOT_NAMES[i % PLOT_NAMES.length] || `Plot ${i+1}`;
+  tile.innerHTML = `<div class="tile-label">Plot ${i + 1}</div><div class="tile-subtitle">${plotName}</div><div class="tile-item"></div>`;
       tile.addEventListener('click', () => onMapTileClick(i, tile));
       // drag & drop support so players can drag items from the shop onto a tile
       tile.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer && (e.dataTransfer.dropEffect = 'copy'); tile.classList.add('drop-target'); });
@@ -787,6 +795,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // add worldInner to the viewport
     mapGridEl.appendChild(worldInner);
+
+    // spawn enemies for this session and mark tiles visually
+    try { spawnEnemiesForSession(); } catch (e) {}
+    if (Array.isArray(state.enemyTiles)) {
+      state.enemyTiles.forEach(idx => {
+        const t = worldInner.querySelector(`.map-tile[data-index="${idx}"]`);
+        if (t) {
+          t.classList.add('enemy');
+          // small enemy marker
+          let m = t.querySelector('.enemy-marker');
+          if (!m) {
+            m = document.createElement('div'); m.className = 'enemy-marker'; m.textContent = '⚔️';
+            t.appendChild(m);
+          }
+        }
+      });
+    }
 
     // create or update player element (use inline SVG sprite for a medieval look)
     if (!playerEl) {
@@ -834,19 +859,28 @@ document.addEventListener('DOMContentLoaded', () => {
         el.className = 'npc-entity';
         el.setAttribute('aria-hidden', 'true');
         el.setAttribute('data-npc-id', npcObj.id);
-        // avatar (emoji) shown in circle
+        // avatar (SVG image) shown in circle — generate unique placeholder SVG per NPC
         const avatar = document.createElement('div');
         avatar.className = 'npc-avatar';
-        avatar.textContent = npcObj.avatar || '👤';
+        // create a simple SVG avatar with initial and colored background
+        const initials = (npcObj.name || 'V').split(' ').map(s=>s[0]).slice(0,2).join('');
+        const colors = ['#f97316','#ef4444','#10b981','#3b82f6','#a78bfa','#f59e0b'];
+        const color = colors[(npcObj.id && npcObj.id.split('-').pop()) % colors.length] || colors[0];
+        const svg = `
+          <svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'>
+            <rect width='36' height='36' rx='8' fill='${color}' />
+            <text x='50%' y='54%' font-size='14' font-family='Georgia, serif' fill='#fff' font-weight='700' text-anchor='middle' dominant-baseline='middle'>${initials}</text>
+          </svg>`;
+        avatar.innerHTML = svg;
         el.appendChild(avatar);
         const badge = document.createElement('div');
         badge.className = 'npc-indicator';
         el.appendChild(badge);
         // small tooltip for accessibility and hover
-        const tip = document.createElement('div');
-        tip.className = 'npc-tooltip';
-        tip.textContent = `${npcObj.name} — ${npcObj.quest && npcObj.quest.desc ? npcObj.quest.desc : 'Seeks help'}`;
-        el.appendChild(tip);
+  const tip = document.createElement('div');
+  tip.className = 'npc-tooltip';
+  tip.textContent = `${npcObj.name} — ${npcObj.quest && npcObj.quest.desc ? npcObj.quest.desc : 'Seeks help'}`;
+  el.appendChild(tip);
         // clicking the NPC opens the dialog for that NPC
         el.addEventListener('click', (ev) => {
           try { ev && ev.stopPropagation && ev.stopPropagation(); } catch (e) {}

@@ -114,7 +114,7 @@ function init() {
 
   // Small list of hamlet/plot names for display (Option 1: light naming)
   const PLOT_NAMES = [
-    'North','Old Mill','Bakers\' Row','Riverbank','Hillstead','Greenway',
+    'Firelake','Old Mill','Bakers\' Row','Riverbank','Hillstead','Greenway',
     'Stonebridge','East Field','West Orchard','Fisher\'s Cove','Town Square','Lower Farm',
     'Upper Meadow','Shepherd\'s Hill','The Ditch','Willow End','Crow\'s Hollow','Amber Lea','Long Acre','Market Lane','Quarry','Fox Run','Ironford','Deepwell'
   ];

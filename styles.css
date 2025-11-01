@@ -133,10 +133,10 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 	text-align: center;
 	cursor: pointer;
 	user-select: none;
-	display:flex;
-	align-items:center;
-	justify-content:center;
-	flex-direction:column;
+	/* Use a stacking layout: label pinned to top, item pinned to bottom so they never overlap */
+	display: block;
+	position: relative;
+	overflow: visible;
 	box-shadow: 0 6px 14px rgba(12, 18, 31, 0.06);
 	transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
@@ -152,10 +152,8 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 .map-tile.player { background: rgba(255,243,224,0.85); outline: 2px solid rgba(14,165,164,0.12); }
 
 /* keep tile inner elements tidy */
-.map-tile .tile-label { font-size: 0.85rem; color: #0f172a; }
-.map-tile .tile-item { font-size: 0.78rem; color: #065f46; margin-top:6px; }
-.map-tile .tile-label { font-size: 0.85rem; color: #0f172a; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.map-tile .tile-item { font-size: 0.78rem; color: #065f46; margin-top:6px; }
+.map-tile .tile-label { font-size: 0.92rem; color: #0f172a; display: block; max-width: calc(100% - 12px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; position: absolute; left: 6px; right: 6px; top: 8px; text-align: center; z-index: 12; font-family: 'Uncial Antiqua', Georgia, serif; }
+.map-tile .tile-item { font-size: 0.78rem; color: #065f46; position: absolute; left: 6px; right: 6px; bottom: 8px; text-align: center; z-index: 10; }
 
 /* ensure tiles render beneath avatars/enemy markers */
 .map-tile { position: absolute; z-index: 2; }

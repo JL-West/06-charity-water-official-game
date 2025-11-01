@@ -2,7 +2,8 @@
 // DOM-based game logic: screen transitions, simple game mechanics, and localStorage persistence.
 // Comments are intentionally beginner-friendly.
 
-document.addEventListener('DOMContentLoaded', () => {
+function init() {
+  console.log('[init] initializing game script');
   // -- Elements
   const screen1 = document.getElementById('screen-1');
   const screen2 = document.getElementById('screen-2');
@@ -1369,6 +1370,7 @@ Z
 
   if (createCharBtn) {
     createCharBtn.addEventListener('click', () => {
+      console.log('[ui] createCharBtn clicked');
       // Use the same non-blocking inline indicator when opening the creator
       showLoading('Preparing character...', 600).then(() => {
         screen1.classList.add('hidden');
@@ -1408,6 +1410,7 @@ Z
 
   if (saveCharBtn) {
     saveCharBtn.addEventListener('click', () => {
+      console.log('[ui] saveCharBtn clicked');
       const name = charNameInput ? charNameInput.value.trim() : '';
       if (!name) {
         alert('Please enter a name for your character.');
@@ -1436,6 +1439,7 @@ Z
   }
 
   loadBtn.addEventListener('click', () => {
+  console.log('[ui] loadBtn clicked');
   // loadBtn clicked
     // Show loading overlay and wait for the fill+finish to complete before hiding
   showLoading('Loading saved game...', 1000).then(() => {
@@ -1764,10 +1768,13 @@ Z
       hideLoading();
     });
   }
-});
-// Log a message to the console to ensure the script is linked correctly
-console.log('JavaScript file is linked correctly.');
-      hideLoading();
-    
-// Log a message to the console to ensure the script is linked correctly
-console.log('JavaScript file is linked correctly.');
+}
+
+// Run init now if the document is already ready, otherwise wait for DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+console.log('script.js loaded');

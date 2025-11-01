@@ -85,6 +85,53 @@ document.addEventListener('DOMContentLoaded', () => {
   const playerNameEl = document.getElementById('playerName');
   const playerAvatarEl = document.getElementById('playerAvatar');
 
+  // Gather button UI (created at runtime so we don't need to edit HTML)
+  let gatherBtn = null;
+  function ensureGatherButton() {
+    if (gatherBtn) return;
+    gatherBtn = document.createElement('button');
+    gatherBtn.id = 'gatherWaterBtn';
+    gatherBtn.className = 'btn medieval-btn';
+    gatherBtn.textContent = 'Scoop Water';
+    // floating position in the map area
+    gatherBtn.style.position = 'absolute';
+    gatherBtn.style.right = '18px';
+    gatherBtn.style.bottom = '18px';
+    gatherBtn.style.zIndex = '25000';
+    gatherBtn.style.display = 'none';
+    gatherBtn.addEventListener('click', (ev) => {
+      try { ev.stopPropagation && ev.stopPropagation(); ev.preventDefault && ev.preventDefault(); } catch (e) {}
+      const res = gatherFromWater(state.playerPosIndex);
+      if (res && res.gathered > 0) {
+        state.waterDelivered = (state.waterDelivered || 0) + res.gathered;
+        updateHUD(); saveState();
+        statusTextEl.textContent = `You scooped ${res.gathered} water from ${PLOT_NAMES[state.playerPosIndex] || 'the stream'}.`;
+        updateChallengeProgress('deliver', res.gathered);
+        checkAchievements();
+      } else {
+        statusTextEl.textContent = res.reason || 'No water available here.';
+      }
+      updateGatherUI();
+    });
+    // append to the map container's parent so it floats above the map
+    const container = mapGridEl && mapGridEl.parentElement ? mapGridEl.parentElement : document.body;
+    container.appendChild(gatherBtn);
+  }
+
+  function canGatherFromWater(index) {
+    if (!isWaterTile(index)) return false;
+    const used = (state.streamUses && state.streamUses[index]) || 0;
+    const MAX_USES = 3;
+    return used < MAX_USES;
+  }
+
+  function updateGatherUI() {
+    ensureGatherButton();
+    if (!gatherBtn) return;
+    const show = canGatherFromWater(state.playerPosIndex) && (!state.placedItems || state.placedItems.length === 0);
+    gatherBtn.style.display = show ? 'inline-block' : 'none';
+  }
+
   function logDebug(msg) {
     // debug helper removed — kept as a no-op to avoid runtime errors if calls remain
     // (originally showed a small on-page debug banner during development)
@@ -105,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Small list of hamlet/plot names for display (Option 1: light naming)
   const PLOT_NAMES = [
-    'North Pasture','Old Mill','Bakers\' Row','Riverbank','Hillstead','Greenway',
+    'North','Old Mill','Bakers\' Row','Riverbank','Hillstead','Greenway',
     'Stonebridge','East Field','West Orchard','Fisher\'s Cove','Town Square','Lower Farm',
     'Upper Meadow','Shepherd\'s Hill','The Ditch','Willow End','Crow\'s Hollow','Amber Lea','Long Acre','Market Lane','Quarry','Fox Run','Ironford','Deepwell'
   ];
@@ -257,31 +304,9 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   function spawnEnemiesForSession() {
-    // ensure we only spawn once per session unless map re-renders and we want to respawn
-    if (Array.isArray(state.enemyTiles) && state.enemyTiles.length) return;
+    // Enemies disabled per user request. Keep state.enemyTiles empty so no enemy visuals are rendered.
     state.enemyTiles = [];
-    // compute count using config overrides where present
-    let base = (state.config && state.config.enemyCounts && typeof state.config.enemyCounts.normal === 'number') ? state.config.enemyCounts.normal : 2;
-    let count = 0;
-    const den = (state.config && state.config.enemyDensity) ? state.config.enemyDensity : 'auto';
-    if (den === 'low') count = Math.max(0, base - 1);
-    else if (den === 'normal') count = base;
-    else if (den === 'high') count = base + 2;
-    else {
-      // auto: use per-difficulty mapping from config if available
-      if (state.difficulty === 'easy') count = (state.config && state.config.enemyCounts && typeof state.config.enemyCounts.easy === 'number') ? state.config.enemyCounts.easy : 0;
-      else if (state.difficulty === 'normal') count = (state.config && state.config.enemyCounts && typeof state.config.enemyCounts.normal === 'number') ? state.config.enemyCounts.normal : 2;
-      else if (state.difficulty === 'hard') count = (state.config && state.config.enemyCounts && typeof state.config.enemyCounts.hard === 'number') ? state.config.enemyCounts.hard : 4;
-    }
-  // forbid player tile and any NPC tiles
-  const npcIndices = Array.isArray(state.npcs) ? state.npcs.map(n=>n.index) : [];
-  const forbidden = new Set([state.playerPosIndex].concat(npcIndices));
-    const available = [];
-    for (let i = 0; i < totalTiles; i++) if (!forbidden.has(i)) available.push(i);
-    for (let i = 0; i < count && available.length; i++) {
-      const idx = Math.floor(Math.random() * available.length);
-      state.enemyTiles.push(available.splice(idx, 1)[0]);
-    }
+    return;
   }
 
   function handleEncounter(index) {
@@ -797,22 +822,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // add worldInner to the viewport
     mapGridEl.appendChild(worldInner);
 
-    // spawn enemies for this session and mark tiles visually
-    try { spawnEnemiesForSession(); } catch (e) {}
-    if (Array.isArray(state.enemyTiles)) {
-      state.enemyTiles.forEach(idx => {
-        const t = worldInner.querySelector(`.map-tile[data-index="${idx}"]`);
-        if (t) {
-          t.classList.add('enemy');
-          // small enemy marker
-          let m = t.querySelector('.enemy-marker');
-          if (!m) {
-            m = document.createElement('div'); m.className = 'enemy-marker'; m.textContent = '⚔️';
-            t.appendChild(m);
-          }
-        }
-      });
-    }
+    // Enemies removed — no visual marking or spawning.
 
     // create or update player element (use inline SVG sprite for a medieval look)
     if (!playerEl) {
@@ -848,6 +858,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Render NPC entity
     renderNpc();
+    // update gather UI (shows Scoop Water button when applicable)
+    try { updateGatherUI(); } catch (e) {}
   }
 
   function renderNpc() {
@@ -1207,7 +1219,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     placeItemOnTile(index, state.selectedTool, tileEl);
   }
-
+Z
   // Helpers for water tiles (river/stream gather)
   function isWaterTile(index) {
     const name = PLOT_NAMES[index] || '';

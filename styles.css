@@ -185,8 +185,8 @@ h1, h2, h3, .card h3 { font-family: 'Uncial Antiqua', Georgia, serif; letter-spa
 /* Modal dialog for NPC / quest */
 .modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20000; }
 .modal.hidden { display: none; }
-.modal-backdrop { position: absolute; inset: 0; background: rgba(2,6,23,0.5); border-radius: 8px; }
-.modal-content { position: relative; background: #fff; padding: 18px 18px 12px 18px; border-radius: 10px; width: 420px; max-width: calc(100% - 32px); box-shadow: 0 8px 36px rgba(2,6,23,0.32); z-index: 2; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(2,6,23,0.5); border-radius: 8px; z-index: 19999; pointer-events: auto; }
+.modal-content { position: relative; background: #fff; padding: 18px 18px 12px 18px; border-radius: 10px; width: 420px; max-width: calc(100% - 32px); box-shadow: 0 8px 36px rgba(2,6,23,0.32); z-index: 20001; pointer-events: auto; }
 .modal-content h3 { margin: 0 0 8px 0; }
 .modal-content p { color: #374151; }
 

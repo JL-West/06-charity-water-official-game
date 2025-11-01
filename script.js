@@ -1208,6 +1208,28 @@ document.addEventListener('DOMContentLoaded', () => {
     placeItemOnTile(index, state.selectedTool, tileEl);
   }
 
+  // Helpers for water tiles (river/stream gather)
+  function isWaterTile(index) {
+    const name = PLOT_NAMES[index] || '';
+    const lower = name.toLowerCase();
+    return /river|fisher|cove|brook|ditch|well|deepwell|stream|bank/.test(lower);
+  }
+
+  function gatherFromWater(index) {
+    if (!isWaterTile(index)) return { gathered: 0, reason: 'No water source here.' };
+    state.streamUses = state.streamUses || {};
+    const used = state.streamUses[index] || 0;
+    const MAX_USES = 3; // limited per-session uses so it's not infinite
+    if (used >= MAX_USES) return { gathered: 0, reason: 'The stream looks low right now.' };
+    // compute gather amount by difficulty (easy yields more)
+    const mult = difficultyMultiplier();
+    const base = 4; // base water gathered per scoop
+    const gathered = Math.max(1, Math.round(base * mult));
+    state.streamUses[index] = used + 1;
+    saveState();
+    return { gathered, reason: null };
+  }
+
   // Deliver water logic
   if (deliverBtn) {
     deliverBtn.addEventListener('click', () => {
@@ -1244,7 +1266,22 @@ document.addEventListener('DOMContentLoaded', () => {
       state.placedItems.forEach(p => {
         gained += (p.item.effect && p.item.effect.water) || 0;
       });
-      if (gained === 0) gained = 2;
+      if (gained === 0) {
+        // If no placed items produced water, try gathering from a nearby stream/river at the player's location
+        try {
+          const gather = gatherFromWater(state.playerPosIndex);
+          if (gather && gather.gathered > 0) {
+            gained = gather.gathered;
+            statusTextEl.textContent = `You scooped ${gained} water from ${PLOT_NAMES[state.playerPosIndex] || 'the stream'}.`;
+          } else {
+            // fallback small yield when nothing is available
+            gained = 2;
+            if (gather && gather.reason) statusTextEl.textContent = gather.reason;
+          }
+        } catch (e) {
+          gained = 2;
+        }
+      }
       // apply difficulty multiplier to yields and rewards
       const mult = difficultyMultiplier();
       const gainedAdj = Math.max(1, Math.round(gained * mult));

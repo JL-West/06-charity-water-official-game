@@ -840,15 +840,30 @@ function init() {
         // avatar (SVG image) shown in circle — generate unique placeholder SVG per NPC
         const avatar = document.createElement('div');
         avatar.className = 'npc-avatar';
-        // create a simple SVG avatar with initial and colored background
+        // create a simple SVG avatar. If the NPC currently has an available quest
+        // show a silhouette indicator instead of initials to make them visually
+        // distinct as 'needs aid'. Otherwise show initials with a colored background.
         const initials = (npcObj.name || 'V').split(' ').map(s=>s[0]).slice(0,2).join('');
         const colors = ['#f97316','#ef4444','#10b981','#3b82f6','#a78bfa','#f59e0b'];
         const color = colors[(npcObj.id && npcObj.id.split('-').pop()) % colors.length] || colors[0];
-        const svg = `
-          <svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'>
-            <rect width='36' height='36' rx='8' fill='${color}' />
-            <text x='50%' y='54%' font-size='14' font-family='Georgia, serif' fill='#fff' font-weight='700' text-anchor='middle' dominant-baseline='middle'>${initials}</text>
-          </svg>`;
+        let svg = '';
+        if (npcObj.available) {
+          // silhouette SVG (small person outline) on a pale background so it reads as a callout
+          svg = `
+            <svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36' aria-hidden='true' focusable='false'>
+              <rect width='36' height='36' rx='8' fill='#f3f4f6' />
+              <g transform='translate(6,4)' fill='none' fill-rule='evenodd'>
+                <circle cx='12' cy='6' r='4' fill='${color}' />
+                <path d='M2 26c0-6 20-6 20 0v2H2v-2z' fill='${color}' opacity='0.95' />
+              </g>
+            </svg>`;
+        } else {
+          svg = `
+            <svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36' aria-hidden='true' focusable='false'>
+              <rect width='36' height='36' rx='8' fill='${color}' />
+              <text x='50%' y='54%' font-size='14' font-family='Georgia, serif' fill='#fff' font-weight='700' text-anchor='middle' dominant-baseline='middle'>${initials}</text>
+            </svg>`;
+        }
         avatar.innerHTML = svg;
         el.appendChild(avatar);
         const badge = document.createElement('div');
@@ -867,7 +882,29 @@ function init() {
         worldInner.appendChild(el);
       } else {
         // ensure avatar and tooltip reflect any updates
-        const avatar = el.querySelector('.npc-avatar'); if (avatar) avatar.textContent = npcObj.avatar || '👤';
+        const avatar = el.querySelector('.npc-avatar');
+        if (avatar) {
+          // rebuild inner SVG depending on quest availability (match creation logic)
+          const initials = (npcObj.name || 'V').split(' ').map(s=>s[0]).slice(0,2).join('');
+          const colors = ['#f97316','#ef4444','#10b981','#3b82f6','#a78bfa','#f59e0b'];
+          const color = colors[(npcObj.id && npcObj.id.split('-').pop()) % colors.length] || colors[0];
+          if (npcObj.available) {
+            avatar.innerHTML = `
+              <svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36' aria-hidden='true' focusable='false'>
+                <rect width='36' height='36' rx='8' fill='#f3f4f6' />
+                <g transform='translate(6,4)' fill='none' fill-rule='evenodd'>
+                  <circle cx='12' cy='6' r='4' fill='${color}' />
+                  <path d='M2 26c0-6 20-6 20 0v2H2v-2z' fill='${color}' opacity='0.95' />
+                </g>
+              </svg>`;
+          } else {
+            avatar.innerHTML = `
+              <svg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36' aria-hidden='true' focusable='false'>
+                <rect width='36' height='36' rx='8' fill='${color}' />
+                <text x='50%' y='54%' font-size='14' font-family='Georgia, serif' fill='#fff' font-weight='700' text-anchor='middle' dominant-baseline='middle'>${initials}</text>
+              </svg>`;
+          }
+        }
         const tip = el.querySelector('.npc-tooltip'); if (tip) tip.textContent = `${npcObj.name} — ${npcObj.quest && npcObj.quest.desc ? npcObj.quest.desc : 'Seeks help'}`;
       }
   const idx = npcObj.index;

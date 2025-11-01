@@ -195,8 +195,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Player position (grid index). Persisted in state.playerPosIndex
   if (typeof state.playerPosIndex === 'undefined' || state.playerPosIndex === null) {
-    // default to center tile
-    state.playerPosIndex = Math.floor(totalTiles / 2);
+    // default to center tile — guard against totalTiles not yet defined by using safe fallbacks
+    const cols = (typeof MAP_COLS !== 'undefined') ? MAP_COLS : 6;
+    const rows = (typeof MAP_ROWS !== 'undefined') ? MAP_ROWS : 4;
+    const t = cols * rows;
+    state.playerPosIndex = Math.floor(t / 2);
   }
 
   // Quest NPC: a single NPC tile index and availability flag

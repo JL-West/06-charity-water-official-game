@@ -86,52 +86,13 @@ function init() {
   const playerNameEl = document.getElementById('playerName');
   const playerAvatarEl = document.getElementById('playerAvatar');
 
-  // Gather button UI (created at runtime so we don't need to edit HTML)
+  // Water/gather feature removed — stubs left in place to avoid breaking calls elsewhere.
   let gatherBtn = null;
-  function ensureGatherButton() {
-    if (gatherBtn) return;
-    gatherBtn = document.createElement('button');
-    gatherBtn.id = 'gatherWaterBtn';
-    gatherBtn.className = 'btn medieval-btn';
-    gatherBtn.textContent = 'Scoop Water';
-    // floating position in the map area
-    gatherBtn.style.position = 'absolute';
-    gatherBtn.style.right = '18px';
-    gatherBtn.style.bottom = '18px';
-    gatherBtn.style.zIndex = '25000';
-    gatherBtn.style.display = 'none';
-    gatherBtn.addEventListener('click', (ev) => {
-      try { ev.stopPropagation && ev.stopPropagation(); ev.preventDefault && ev.preventDefault(); } catch (e) {}
-      const res = gatherFromWater(state.playerPosIndex);
-      if (res && res.gathered > 0) {
-        state.waterDelivered = (state.waterDelivered || 0) + res.gathered;
-        updateHUD(); saveState();
-        statusTextEl.textContent = `You scooped ${res.gathered} water from ${PLOT_NAMES[state.playerPosIndex] || 'the stream'}.`;
-        updateChallengeProgress('deliver', res.gathered);
-        checkAchievements();
-      } else {
-        statusTextEl.textContent = res.reason || 'No water available here.';
-      }
-      updateGatherUI();
-    });
-    // append to the map container's parent so it floats above the map
-    const container = mapGridEl && mapGridEl.parentElement ? mapGridEl.parentElement : document.body;
-    container.appendChild(gatherBtn);
-  }
+  function ensureGatherButton() { /* no-op: water feature disabled */ }
 
-  function canGatherFromWater(index) {
-    if (!isWaterTile(index)) return false;
-    const used = (state.streamUses && state.streamUses[index]) || 0;
-    const MAX_USES = 3;
-    return used < MAX_USES;
-  }
+  function canGatherFromWater(index) { return false; }
 
-  function updateGatherUI() {
-    ensureGatherButton();
-    if (!gatherBtn) return;
-    const show = canGatherFromWater(state.playerPosIndex) && (!state.placedItems || state.placedItems.length === 0);
-    gatherBtn.style.display = show ? 'inline-block' : 'none';
-  }
+  function updateGatherUI() { /* no-op: water feature disabled */ }
 
   function logDebug(msg) {
     // debug helper removed — kept as a no-op to avoid runtime errors if calls remain
@@ -1223,28 +1184,10 @@ function init() {
     }
     placeItemOnTile(index, state.selectedTool, tileEl);
   }
-Z
-  // Helpers for water tiles (river/stream gather)
-  function isWaterTile(index) {
-    const name = PLOT_NAMES[index] || '';
-    const lower = name.toLowerCase();
-    return /river|fisher|cove|brook|ditch|well|deepwell|stream|bank/.test(lower);
-  }
 
-  function gatherFromWater(index) {
-    if (!isWaterTile(index)) return { gathered: 0, reason: 'No water source here.' };
-    state.streamUses = state.streamUses || {};
-    const used = state.streamUses[index] || 0;
-    const MAX_USES = 3; // limited per-session uses so it's not infinite
-    if (used >= MAX_USES) return { gathered: 0, reason: 'The stream looks low right now.' };
-    // compute gather amount by difficulty (easy yields more)
-    const mult = difficultyMultiplier();
-    const base = 4; // base water gathered per scoop
-    const gathered = Math.max(1, Math.round(base * mult));
-    state.streamUses[index] = used + 1;
-    saveState();
-    return { gathered, reason: null };
-  }
+  // Water/gather feature disabled — provide safe stubs so other code can call these without effect.
+  function isWaterTile(index) { return false; }
+  function gatherFromWater(index) { return { gathered: 0, reason: 'Water feature disabled.' }; }
 
   // Deliver water logic
   if (deliverBtn) {
@@ -1283,20 +1226,9 @@ Z
         gained += (p.item.effect && p.item.effect.water) || 0;
       });
       if (gained === 0) {
-        // If no placed items produced water, try gathering from a nearby stream/river at the player's location
-        try {
-          const gather = gatherFromWater(state.playerPosIndex);
-          if (gather && gather.gathered > 0) {
-            gained = gather.gathered;
-            statusTextEl.textContent = `You scooped ${gained} water from ${PLOT_NAMES[state.playerPosIndex] || 'the stream'}.`;
-          } else {
-            // fallback small yield when nothing is available
-            gained = 2;
-            if (gather && gather.reason) statusTextEl.textContent = gather.reason;
-          }
-        } catch (e) {
-          gained = 2;
-        }
+        // Water gather feature removed — give a small default yield so deliveries still work.
+        gained = 2;
+        statusTextEl.textContent = 'No placed supplies; delivered a small default amount.';
       }
       // apply difficulty multiplier to yields and rewards
       const mult = difficultyMultiplier();
